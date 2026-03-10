@@ -1,6 +1,14 @@
 using Microsoft.AspNetCore.Authentication.Negotiate;
+using Microsoft.EntityFrameworkCore;
+using WebReport.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
+// Or hardcode: var connectionString = "server=localhost;database=yourdb;user=youruser;password=yourpassword";
+
+builder.Services.AddDbContext<WebReportDBContext>(options =>
+    options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 

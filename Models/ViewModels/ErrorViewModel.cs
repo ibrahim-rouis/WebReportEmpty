@@ -1,4 +1,4 @@
-namespace WebReport.Models
+namespace WebReport.Models.ViewModels
 {
     public class ErrorViewModel
     {

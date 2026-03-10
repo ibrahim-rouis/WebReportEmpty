@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using WebReport.Models;
+using WebReport.Models.ViewModels;
 
 namespace WebReport.Controllers
 {
