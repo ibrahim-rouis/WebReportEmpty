@@ -5,6 +5,7 @@
 @inject UserPhotoService userPhotoService
 
 @{
+
     // Get the user's photo in Base64 format, or null if not available
     var photoBase64 = !String.IsNullOrEmpty(User.Identity?.Name) ? userPhotoService.GetUserPhotoBase64(User.Identity?.Name!) : null;
 
@@ -16,16 +17,20 @@
 
     // Show only the main role (first role), or "No roles" if none
     var mainRole = roles.FirstOrDefault() ?? "No roles";
-    
+
     // Show all roles in tooltip, or "No roles" if none
     var tooltipString = roles.Any() ? string.Join(", ", roles) : "No roles";
+
+
+
+    var defaultAvatar = "default.svg";
 
 }
 
 @if (ViewData["navbarFull"] != null)
 {
     <div class="navbar-brand app-brand demo d-none d-xl-flex py-0 me-4">
-        <a asp-controller="Dashboards" asp-action="Index" class="app-brand-link gap-2">
+        <a asp-controller="Home" asp-action="Index" class="app-brand-link gap-2">
             <span class="app-brand-logo demo">
                 @await Html.PartialAsync("../_Partials/_Macros")
             </span>
@@ -67,11 +72,6 @@
 
 
     <ul class="navbar-nav flex-row align-items-center ms-md-auto">
-        <!-- Place this tag where you want the button to render. -->
-        <li class="nav-item lh-1 me-4">
-            <a class="github-button" href="https://github.com/themeselection/sneat-bootstrap-html-aspnet-core-mvc-admin-template-free" data-icon="octicon-star" data-size="large" data-show-count="true" aria-label="Star themeselection/sneat-html-admin-template-free on GitHub">Star</a>
-        </li>
-
         <!-- User -->
         <li class="nav-item navbar-dropdown dropdown-user dropdown">
             <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
@@ -82,7 +82,7 @@
                     }
                     else
                     {
-                        <img src="~/img/avatars/1.png" alt="Default User Photo" class="w-px-40 h-auto rounded-circle" />
+                        <img src="~/img/avatars/@defaultAvatar" alt="Default User Photo" class="w-px-40 h-auto rounded-circle" />
                     }
                 </div>
             </a>
@@ -98,7 +98,7 @@
                                     }
                                     else
                                     {
-                                        <img src="~/img/avatars/1.png" alt="Default User Photo" class="w-px-40 h-auto rounded-circle" />
+                                        <img src="~/img/avatars/@defaultAvatar" alt="Default User Photo" class="w-px-40 h-auto rounded-circle" />
                                     }
                                 </div>
                             </div>
@@ -138,10 +138,3 @@
 
     </ul>
 </div>
-
-<script>
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl)
-    })
-</script>

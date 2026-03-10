@@ -2,6 +2,7 @@
 using System.DirectoryServices;
 using Microsoft.Extensions.Logging;
 
+// This service retrieves a user's photo from Active Directory and returns it as a Base64 string.
 public class UserPhotoService
 {
     private readonly ILogger<UserPhotoService> _logger;
@@ -21,7 +22,7 @@ public class UserPhotoService
 
         try
         {
-            _logger.LogInformation("Attempting to retrieve photo for user: {Username}", username);
+            _logger.LogDebug("Attempting to retrieve photo for user: {Username}", username);
 
             using (var context = new PrincipalContext(ContextType.Domain))
             using (var user = UserPrincipal.FindByIdentity(context, username))
@@ -31,12 +32,12 @@ public class UserPhotoService
                     var de = user.GetUnderlyingObject() as DirectoryEntry;
                     if (de != null && de.Properties["thumbnailPhoto"].Value is byte[] photoBytes)
                     {
-                        _logger.LogInformation("Photo found for user: {Username}", username);
+                        _logger.LogDebug("Photo found for user: {Username}", username);
                         return Convert.ToBase64String(photoBytes);
                     }
                     else
                     {
-                        _logger.LogInformation("No photo found for user: {Username}", username);
+                        _logger.LogDebug("No photo found for user: {Username}", username);
                     }
                 }
                 else
