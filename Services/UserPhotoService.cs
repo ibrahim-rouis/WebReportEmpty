@@ -46,9 +46,9 @@ public class UserPhotoService
                 }
             }
         }
-        catch (Exception ex)
+        catch
         {
-            _logger.LogDebug(ex, "Error retrieving photo for user: {Username}", username);
+            _logger.LogDebug("Error retrieving photo for user: {Username}", username);
         }
 
         return null;
