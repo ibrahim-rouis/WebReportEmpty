@@ -16,13 +16,13 @@ public class UserPhotoService
     {
         if (string.IsNullOrWhiteSpace(username))
         {
-            _logger.LogWarning("GetUserPhotoBase64 called with empty username.");
+            // _logger.LogWarning("GetUserPhotoBase64 called with empty username.");
             return null;
         }
 
         try
         {
-            _logger.LogDebug("Attempting to retrieve photo for user: {Username}", username);
+            // _logger.LogDebug("Attempting to retrieve photo for user: {Username}", username);
 
             using (var context = new PrincipalContext(ContextType.Domain))
             using (var user = UserPrincipal.FindByIdentity(context, username))
@@ -37,18 +37,18 @@ public class UserPhotoService
                     }
                     else
                     {
-                        _logger.LogDebug("No photo found for user: {Username}", username);
+                        // _logger.LogDebug("No photo found for user: {Username}", username);
                     }
                 }
                 else
                 {
-                    _logger.LogDebug("UserPrincipal not found for username: {Username}", username);
+                    // _logger.LogDebug("UserPrincipal not found for username: {Username}", username);
                 }
             }
         }
         catch
         {
-            _logger.LogDebug("Error retrieving photo for user: {Username}", username);
+            // _logger.LogDebug("Error retrieving photo for user: {Username}", username);
         }
 
         return null;

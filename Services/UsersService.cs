@@ -22,21 +22,21 @@ namespace WebReport.Services
             _logger = logger;
         }
 
-        public async Task<PaginatedList<User>> GetUsers(string searchString, int pageIndex, int? profilIdFilter)
+        public async Task<PaginatedList<User>> GetUsers(string searchString, int pageIndex, int? roleIdFilter)
         {
-            _logger.LogInformation("Getting users with searchString: {searchString}, pageIndex: {pageIndex}, profilIdFilter: {profilIdFilter}", searchString, pageIndex, profilIdFilter);
+            _logger.LogInformation("Getting users with searchString: {searchString}, pageIndex: {pageIndex}, roleIdFilter: {roleIdFilter}", searchString, pageIndex, roleIdFilter);
 
             // NoTracking is recommended to make pages consistent when something changes during viewing it
-            var users = _context.Users.Include(u => u.Profils).AsNoTracking();
+            var users = _context.Users.Include(u => u.Roles).AsNoTracking();
 
             // Apply search filer if provided
             if (!string.IsNullOrEmpty(searchString))
             {
-                users = users.Where(u => u.Nom!.ToUpper().Contains(searchString.ToUpper()));
+                users = users.Where(u => u.Name!.ToUpper().Contains(searchString.ToUpper()));
             }
-            if (profilIdFilter.HasValue)
+            if (roleIdFilter.HasValue)
             {
-                users = users.Where(u => u.Profils!.Any(p => p.Id == profilIdFilter));
+                users = users.Where(u => u.Roles!.Any(p => p.Id == roleIdFilter));
 
             }
 
@@ -49,12 +49,12 @@ namespace WebReport.Services
         public async Task<User?> GetUserById(int id)
         {
             _logger.LogInformation("Getting user by id: {id}", id);
-            return await _context.Users.Include(u => u.Profils).FirstOrDefaultAsync(u => u.Id == id);
+            return await _context.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Id == id);
         }
 
         public async Task CreateUser(User user)
         {
-            _logger.LogInformation("Creating user with name: {name}", user.Nom);
+            _logger.LogInformation("Creating user with name: {name}", user.Name);
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
         }

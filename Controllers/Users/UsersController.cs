@@ -10,23 +10,23 @@ namespace WebReport.Controllers.Users
     {
         private readonly ILogger<UsersController> _logger;
         private readonly UsersService _service;
-        private readonly RolesService _profilsService;
-        public UsersController(UsersService service, RolesService profilsService, ILogger<UsersController> logger)
+        private readonly RolesService _rolesService;
+        public UsersController(UsersService service, RolesService rolesService, ILogger<UsersController> logger)
         {
-            _profilsService = profilsService;
+            _rolesService = rolesService;
             _service = service;
             _logger = logger;
         }
 
         // GET: Users
-        public async Task<IActionResult> Index(int? pageNumber, string searchString, int? profilId)
+        public async Task<IActionResult> Index(int? pageNumber, string searchString, int? roleId)
         {
-            _logger.LogInformation("Accessing Users/Index with pageNumber: {PageNumber}, searchString: {SearchString}, profilId: {ProfilId}", pageNumber, searchString, profilId);
+            _logger.LogInformation("Accessing Users/Index with pageNumber: {PageNumber}, searchString: {SearchString}, roleId: {RoleId}", pageNumber, searchString, roleId);
 
             // Redirect to ensure query parameters are always visible in URL
             if (pageNumber == null)
             {
-                return RedirectToAction(nameof(Index), new { pageNumber = 1, searchString = searchString ?? "", profilId });
+                return RedirectToAction(nameof(Index), new { pageNumber = 1, searchString = searchString ?? "", roleId });
             }
 
             // Page index
@@ -35,18 +35,18 @@ namespace WebReport.Controllers.Users
             // Handle negative page index and reset to default
             if (pageIndex < 1)
             {
-                return RedirectToAction(nameof(Index), new { pageNumber = 1, searchString = searchString ?? "", profilId });
+                return RedirectToAction(nameof(Index), new { pageNumber = 1, searchString = searchString ?? "", roleId });
             }
 
-            // Get all profils for profil filter dropdown
-            var profils = await _profilsService.GetAllProfils();
-            ViewBag.ProfilsList = new SelectList(profils, "Id", "profil");
+            // Get all roles for roles filter dropdown
+            var roles = await _rolesService.GetAllRoles();
+            ViewBag.RolesList = new SelectList(roles, "Id", "Name");
 
-            var users = await _service.GetUsers(searchString ?? "", pageIndex, profilId);
+            var users = await _service.GetUsers(searchString ?? "", pageIndex, roleId);
 
             ViewData["SearchString"] = searchString ?? "";
-            ViewData["ProfilId"] = profilId;
-            return View(users);
+            ViewData["RoleId"] = roleId;
+            return View("~/Views/UsersMgr/Users/Index.cshtml", users);
         }
 
         // GET: Users/Details/5
@@ -67,7 +67,7 @@ namespace WebReport.Controllers.Users
                 _logger.LogWarning("User with id {Id} not found", id);
                 return NotFound();
             }
-            return View(user);
+            return View("~/Views/UsersMgr/Users/Det.cshtml", user);
         }
 
         // GET: Users/Create
@@ -75,46 +75,46 @@ namespace WebReport.Controllers.Users
         {
             _logger.LogInformation("Accessing Users/Create");
 
-            // Get all profils for selection during user creation
-            var allProfils = await _profilsService.GetAllProfils();
-            ViewBag.Profils = allProfils.Select(p => new SelectListItem
+            // Get all roles for selection during user creation
+            var allRoles = await _rolesService.GetAllRoles();
+            ViewBag.RolesList = allRoles.Select(p => new SelectListItem
             {
                 Value = p.Id.ToString(),
-                Text = p.profil
+                Text = p.Name
             }).ToList();
 
-            return View();
+            return View("~/Views/UsersMgr/Users/Create.cshtml");
         }
 
         // POST: Users/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Nom")] User user, int[] selectedProfils)
+        public async Task<IActionResult> Create([Bind("Name")] User user, int[] selectedRoles)
         {
-            _logger.LogInformation("Posting to Users/Create with user: {User}, selectedProfils: {SelectedProfils}", user, selectedProfils);
+            _logger.LogInformation("Posting to Users/Create with user: {User}, selectedRoles: {SelectedRoles}", user, selectedRoles);
 
             if (ModelState.IsValid)
             {
-                // Add selected profils to the user
-                if (selectedProfils != null && selectedProfils.Length > 0)
+                // Add selected roles to the user
+                if (selectedRoles != null && selectedRoles.Length > 0)
                 {
-                    user.Profils = await _profilsService.GetProfilsByIds([.. selectedProfils]);
+                    user.Roles = await _rolesService.GetRolesByIds([.. selectedRoles]);
                 }
 
                 await _service.CreateUser(user);
-                return RedirectToAction(nameof(Index), new { pageNumber = 1, searchString = "", profilId = (int?)null });
+                return RedirectToAction(nameof(Index), new { pageNumber = 1, searchString = "", roleId = (int?)null });
             }
 
             // If we got here, something failed, redisplay form
-            var allProfils = await _profilsService.GetAllProfils();
-            ViewBag.Profils = allProfils.Select(p => new SelectListItem
+            var allRoles = await _rolesService.GetAllRoles();
+            ViewBag.RolesList = allRoles.Select(p => new SelectListItem
             {
                 Value = p.Id.ToString(),
-                Text = p.profil,
-                Selected = selectedProfils?.Contains(p.Id) ?? false
+                Text = p.Name,
+                Selected = selectedRoles?.Contains(p.Id) ?? false
             }).ToList();
 
-            return View(user);
+            return View("~/Views/UsersMgr/Users/Create.cshtml", user);
         }
 
         // GET: Users/Edit/5
@@ -135,24 +135,24 @@ namespace WebReport.Controllers.Users
                 return NotFound();
             }
 
-            // Get all profils and mark the ones assigned to this user as selected
-            var allProfils = await _profilsService.GetAllProfils();
-            var userProfilIds = user.Profils?.Select(p => p.Id).ToList() ?? new List<int>();
-            ViewBag.Profils = allProfils.Select(p => new SelectListItem
+            // Get all roles and mark the ones assigned to this user as selected
+            var allRoles = await _rolesService.GetAllRoles();
+            var userRolesIds = user.Roles?.Select(p => p.Id).ToList() ?? new List<int>();
+            ViewBag.Roles = allRoles.Select(p => new SelectListItem
             {
                 Value = p.Id.ToString(),
-                Text = p.profil,
-                Selected = userProfilIds.Contains(p.Id)
+                Text = p.Name,
+                Selected = userRolesIds.Contains(p.Id)
             }).ToList();
-            return View(user);
+            return View("~/Views/UsersMgr/Users/Edit.cshtml", user);
         }
 
         // POST: Users/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Nom")] User user, int[] selectedProfils)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] User user, int[] selectedRoles)
         {
-            _logger.LogInformation("Posting to Users/Edit with id: {Id}, user: {User}, selectedProfils: {SelectedProfils}", id, user, selectedProfils);
+            _logger.LogInformation("Posting to Users/Edit with id: {Id}, user: {User}, selectedRoles: {SelectedRoles}", id, user, selectedRoles);
 
             if (id != user.Id)
             {
@@ -164,7 +164,7 @@ namespace WebReport.Controllers.Users
             {
                 try
                 {
-                    // Get the existing user with their profils from the database
+                    // Get the existing user with their roles from the database
                     var userToUpdate = await _service.GetUserById(id);
 
                     if (userToUpdate == null)
@@ -173,17 +173,18 @@ namespace WebReport.Controllers.Users
                     }
 
                     // Update the user's name
-                    userToUpdate.Nom = user.Nom;
+                    userToUpdate.Name = user.Name;
 
-                    // Clear existing profils
-                    userToUpdate.Profils?.Clear();
+                    // Clear existing roles
+                    // TODO: This approach may not be optimal for large datasets, consider a more efficient way to update roles if performance becomes an issue
+                    userToUpdate.Roles?.Clear();
 
-                    // Add selected profils
-                    if (selectedProfils != null && selectedProfils.Length > 0)
+                    // Add selected roles
+                    if (selectedRoles != null && selectedRoles.Length > 0)
                     {
-                        var profilsToAdd = await _profilsService.GetProfilsByIds([.. selectedProfils]);
+                        var rolesToAdd = await _rolesService.GetRolesByIds([.. selectedRoles]);
 
-                        userToUpdate.Profils = profilsToAdd;
+                        userToUpdate.Roles = rolesToAdd;
                     }
 
                     await _service.UpdateUser(userToUpdate);
@@ -201,41 +202,19 @@ namespace WebReport.Controllers.Users
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index), new { pageNumber = 1, searchString = "", profilId = (int?)null });
+                return RedirectToAction(nameof(Index), new { pageNumber = 1, searchString = "", roleId = (int?)null });
             }
 
             // If we got here, something failed, redisplay form
-            var allProfils = await _profilsService.GetAllProfils();
-            ViewBag.Profils = allProfils.Select(p => new SelectListItem
+            var allRoles = await _rolesService.GetAllRoles();
+            ViewBag.Roles = allRoles.Select(p => new SelectListItem
             {
                 Value = p.Id.ToString(),
-                Text = p.profil,
-                Selected = selectedProfils?.Contains(p.Id) ?? false
+                Text = p.Name,
+                Selected = selectedRoles?.Contains(p.Id) ?? false
             }).ToList();
 
-            return View(user);
-        }
-
-        // GET: Users/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            _logger.LogInformation("Accessing Users/Delete with id: {Id}", id);
-
-            if (id == null)
-            {
-                _logger.LogWarning("Users/Delete called without an id");
-                return NotFound();
-            }
-
-            var user = await _service.GetUserById(id.Value);
-
-            if (user == null)
-            {
-                _logger.LogWarning("User with id {Id} not found for deletion", id);
-                return NotFound();
-            }
-
-            return View(user);
+            return View("~/Views/UsersMgr/Users/Edit.cshtml", user);
         }
 
         // POST: Users/Delete/5
@@ -252,10 +231,10 @@ namespace WebReport.Controllers.Users
             else
             {
                 _logger.LogWarning("User with id {Id} not found during deletion", id);
-                return NotFound();
+                return Json(new { success = false, message = "Role not found." });
             }
 
-            return RedirectToAction(nameof(Index), new { pageNumber = 1, searchString = "", profilId = (int?)null });
+            return Json(new { success = true });
         }
 
         private async Task<bool> UserExists(int id)

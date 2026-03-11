@@ -19,87 +19,87 @@ namespace WebReport.Services
             _logger = logger;
         }
 
-        public async Task<PaginatedList<Profil>> GetProfils(string searchString, int pageIndex)
+        public async Task<PaginatedList<Role>> GetRoles(string searchString, int pageIndex)
         {
-            _logger.LogInformation("Getting profils with search string: {SearchString} and page index: {PageIndex}", searchString, pageIndex);
+            _logger.LogInformation("Getting roles with search string: {SearchString} and page index: {PageIndex}", searchString, pageIndex);
 
             // NoTracking is recommended to make pages consistent when something changes during viewing it
-            var profils = _context.Profils.AsNoTracking();
+            var roles = _context.Roles.AsNoTracking();
             // Apply search filer if provided
 
             // Apply searchString filter (case insensitive)
             if (!string.IsNullOrEmpty(searchString))
             {
-                profils = profils.Where(u => u.profil!.ToUpper().Contains(searchString.ToUpper()));
+                roles = roles.Where(u => u.Name!.ToUpper().Contains(searchString.ToUpper()));
             }
 
             // Add OrderBy to ensrue consistent ordering of results
-            profils = profils.OrderBy(p => p.profil);
+            roles = roles.OrderBy(p => p.Name);
 
-            return await PaginatedList<Profil>.CreateAsync(profils, pageIndex, _config.DefaultPageSize);
+            return await PaginatedList<Role>.CreateAsync(roles, pageIndex, _config.DefaultPageSize);
         }
 
-        public async Task<Profil?> GetProfilById(int id)
+        public async Task<Role?> GetRoleById(int id)
         {
-            _logger.LogInformation("Getting profil by id: {Id}", id);
-            return await _context.Profils.FirstOrDefaultAsync(p => p.Id == id);
+            _logger.LogInformation("Getting role by id: {Id}", id);
+            return await _context.Roles.FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task CreateProfil(Profil profil)
+        public async Task CreateRole(Role role)
         {
-            _logger.LogInformation("Creating new profil with name: {ProfilName}", profil.profil);
-            _context.Profils.Add(profil);
+            _logger.LogInformation("Creating new role with name: {RoleName}", role.Name);
+            _context.Roles.Add(role);
             await _context.SaveChangesAsync();
         }
 
-        public async Task UpdateProfil(Profil profil)
+        public async Task UpdateRole(Role role)
         {
-            _logger.LogInformation("Updating profil with id: {Id} and new name: {ProfilName}", profil.Id, profil.profil);
-            _context.Profils.Update(profil);
+            _logger.LogInformation("Updating role with id: {Id} and new name: {RoleName}", role.Id, role.Name);
+            _context.Roles.Update(role);
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteProfil(Profil profil)
+        public async Task DeleteRole(Role role)
         {
-            _logger.LogInformation("Deleting profil with id: {Id} and name: {ProfilName}", profil.Id, profil.profil);
+            _logger.LogInformation("Deleting role with id: {Id} and name: {RoleName}", role.Id, role.Name);
 
-            // Check if any users are assosiated with this profile
-            if (profil.Users != null && profil.Users.Any())
+            // Check if any users are assosiated with this role
+            if (role.Users != null && role.Users.Any())
             {
-                _logger.LogInformation("Removing profil associations from {UserCount} users", profil.Users.Count);
-                // Loop through each user and remove the profil association
-                foreach (var user in profil.Users)
+                _logger.LogInformation("Removing role associations from {UserCount} users", role.Users.Count);
+                // Loop through each user and remove the role association
+                foreach (var user in role.Users)
                 {
-                    user.Profils!.Remove(profil);
+                    user.Roles!.Remove(role);
                 }
             }
 
-            // Remove profil
-            _context.Profils.Remove(profil);
+            // Remove role from database
+            _context.Roles.Remove(role);
             await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> ProfilExists(int id)
+        public async Task<bool> RoleExists(int id)
         {
-            return await _context.Profils.AnyAsync(p => p.Id == id);
+            return await _context.Roles.AnyAsync(p => p.Id == id);
         }
 
-        public async Task<Profil?> GetProfilByIdWithUsers(int id)
+        public async Task<Role?> GetRoleByIdWithUsers(int id)
         {
-            _logger.LogInformation("Getting profil with users by id: {Id}", id);
-            return await _context.Profils.Include(p => p.Users).FirstOrDefaultAsync(p => p.Id == id);
+            _logger.LogInformation("Getting role with users by id: {Id}", id);
+            return await _context.Roles.Include(p => p.Users).FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task<List<Profil>> GetAllProfils()
+        public async Task<List<Role>> GetAllRoles()
         {
-            _logger.LogInformation("Getting all profils ordered by name");
-            return await _context.Profils.OrderBy(p => p.profil).ToListAsync();
+            _logger.LogInformation("Getting all roles ordered by name");
+            return await _context.Roles.OrderBy(p => p.Name).ToListAsync();
         }
 
-        public async Task<List<Profil>> GetProfilsByIds(List<int> ids)
+        public async Task<List<Role>> GetRolesByIds(List<int> ids)
         {
-            _logger.LogInformation("Getting profils by ids: {Ids}", string.Join(", ", ids));
-            return await _context.Profils.Where(p => ids.Contains(p.Id)).ToListAsync();
+            _logger.LogInformation("Getting roles by ids: {Ids}", string.Join(", ", ids));
+            return await _context.Roles.Where(p => ids.Contains(p.Id)).ToListAsync();
         }
     }
 }

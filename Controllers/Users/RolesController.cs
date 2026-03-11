@@ -16,7 +16,7 @@ namespace WebReport.Controllers.Users
             _logger = logger;
         }
 
-        // GET: Profils
+        // GET: Roles
         public async Task<IActionResult> Index(int? pageNumber, string searchString)
         {
             _logger.LogInformation("Index action called with pageNumber={PageNumber} and searchString={SearchString}", pageNumber, searchString);
@@ -29,56 +29,36 @@ namespace WebReport.Controllers.Users
                 pageIndex = 1;
             }
 
-            var profils = await _service.GetProfils(searchString, pageIndex);
+            var roles = await _service.GetRoles(searchString, pageIndex);
 
             ViewData["SearchString"] = searchString ?? "";
 
-            return View(profils);
+            return View("~/Views/UsersMgr/Roles/Index.cshtml", roles);
         }
 
-        // GET: Profils/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            _logger.LogInformation("Details action called with id={Id}", id);
-            if (id == null)
-            {
-                _logger.LogWarning("Details action called with null id");
-                return NotFound();
-            }
-
-            var profil = await _service.GetProfilById(id.Value);
-
-            if (profil == null)
-            {
-                _logger.LogWarning("Details action: No profil found with id={Id}", id);
-                return NotFound();
-            }
-            return View(profil);
-        }
-
-        // GET: Profils/Create
+        // GET: Roles/Create
         public IActionResult Create()
         {
-            return View();
+            return View("~/Views/UsersMgr/Roles/Create.cshtml");
         }
 
-        // POST: Profils/Create
+        // POST: Roles/Create
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Id,profil")] Profil profilModel)
+        public async Task<IActionResult> Create([Bind("Id,Name")] Role role)
         {
-            _logger.LogInformation("Create POST action called with profil name={ProfilName}", profilModel.profil);
+            _logger.LogInformation("Create POST action called with Role name={RoleName}", role.Name);
             if (ModelState.IsValid)
             {
-                await _service.CreateProfil(profilModel);
+                await _service.CreateRole(role);
                 return RedirectToAction(nameof(Index));
             }
-            return View(profilModel);
+            return View("~/Views/UsersMgr/Roles/Create.cshtml", role);
         }
 
-        // GET: Profils/Edit/5
+        // GET: Roles/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
             _logger.LogInformation("Edit GET action called with id={Id}", id);
@@ -88,25 +68,25 @@ namespace WebReport.Controllers.Users
                 return NotFound();
             }
 
-            var profil = await _service.GetProfilById(id.Value);
-            if (profil == null)
+            var role = await _service.GetRoleById(id.Value);
+            if (role == null)
             {
-                _logger.LogWarning("Edit GET action: No profil found with id={Id}", id);
+                _logger.LogWarning("Edit GET action: No role found with id={Id}", id);
                 return NotFound();
             }
 
-            return View(profil);
+            return View("~/Views/UsersMgr/Roles/Edit.cshtml", role);
         }
 
-        // POST: Profils/Edit/5
+        // POST: Roles/Edit/5
         // To protect from overposting attacks, enable the specific properties you want to bind to.
         // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,profil")] Profil profilToUpdate)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Role roleToUpdate)
         {
-            _logger.LogInformation("Edit POST action called with id={Id} and profil name={ProfilName}", id, profilToUpdate.profil);
-            if (id != profilToUpdate.Id)
+            _logger.LogInformation("Edit POST action called with id={Id} and role name={RoleName}", id, roleToUpdate.Name);
+            if (id != roleToUpdate.Id)
             {
                 _logger.LogWarning("Edit POST action: id in URL does not match id in model");
                 return NotFound();
@@ -116,14 +96,14 @@ namespace WebReport.Controllers.Users
             {
                 try
                 {
-                    await _service.UpdateProfil(profilToUpdate);
+                    await _service.UpdateRole(roleToUpdate);
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
-                    _logger.LogError(ex, "Concurrency error while updating profil with id={Id}", id);
-                    if (!await _service.ProfilExists(profilToUpdate.Id))
+                    _logger.LogError(ex, "Concurrency error while updating role with id={Id}", id);
+                    if (!await _service.RoleExists(roleToUpdate.Id))
                     {
-                        _logger.LogWarning("Edit POST action: No profil found with id={Id} during update", id);
+                        _logger.LogWarning("Edit POST action: No role found with id={Id} during update", id);
                         return NotFound();
                     }
                     else
@@ -133,57 +113,27 @@ namespace WebReport.Controllers.Users
                 }
                 return RedirectToAction(nameof(Index));
             }
-            return View(profilToUpdate);
+            return View("~/Views/UsersMgr/Roles/Edit.cshtml", roleToUpdate);
         }
 
-        // GET: Profils/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            _logger.LogInformation("Delete GET action called with id={Id}", id);
-            if (id == null)
-            {
-                _logger.LogWarning("Delete GET action called with null id");
-                return NotFound();
-            }
-
-            // Get profil and include Users assigned with it
-            var profil = await _service.GetProfilByIdWithUsers(id.Value);
-
-            if (profil == null)
-            {
-                _logger.LogWarning("Delete GET action: No profil found with id={Id}", id);
-                return NotFound();
-            }
-
-            // Check if profil is assigned to users and warn before delete
-            if (profil.Users != null && profil.Users.Any())
-            {
-                ModelState.AddModelError("", "This profil is assigned to one or more users");
-            }
-
-            return View(profil);
-        }
-
-        // POST: Profils/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             _logger.LogInformation("Delete POST action called with id={Id}", id);
-            // Get profil and Users assigned with it
-            var profil = await _service.GetProfilByIdWithUsers(id);
 
-            if (profil != null)
+            var role = await _service.GetRoleByIdWithUsers(id);
+
+            if (role == null)
             {
-                await _service.DeleteProfil(profil);
-            }
-            else
-            {
-                _logger.LogWarning("Delete POST action: No profil found with id={Id}", id);
-                return NotFound();
+                _logger.LogWarning("Delete POST action: No role found with id={Id}", id);
+                return Json(new { success = false, message = "Role not found." });
             }
 
-            return RedirectToAction(nameof(Index));
+            await _service.DeleteRole(role);
+
+            // Optionally, you can return pageNumber and searchString in the response if needed
+            return Json(new { success = true });
         }
     }
 }
