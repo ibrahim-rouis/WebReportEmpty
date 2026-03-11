@@ -116,7 +116,7 @@ namespace WebReport.Controllers.Users
             return View("~/Views/UsersMgr/Roles/Edit.cshtml", roleToUpdate);
         }
 
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {

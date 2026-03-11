@@ -156,7 +156,7 @@
 @section PageScripts {
     <script>
         let currentPage = "@currentPage";
-        let searchString = "@Html.Raw(JsonSerializer.Serialize(searchString))";
+        let searchString = @Html.Raw(JsonSerializer.Serialize(searchString));
 
         $('.delete-btn').on('click', function (e) {
             currentRoleId = $(this).data('role-id');

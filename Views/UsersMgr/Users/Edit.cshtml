@@ -1,5 +1,59 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using WebReport.Models.Entities
+@model User
+
 @{
+    ViewData["Title"] = "Create";
 }
+
+<!-- Form -->
+<div class="col-xxl">
+    <div class="card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="mb-0">Create User</h5>
+            <small class="text-body-secondary float-end">Users</small>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="row mb-6">
+                    <label asp-for="Name" class="col-sm-2 col-form-label">Name</label>
+                    <div class="col-sm-10">
+                        <input type="text" class="form-control" asp-for="Name" placeholder="Example" />
+                        <span asp-validation-for="Name" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- List group checkbox -->
+                <div class="row mb-6">
+                    <label asp-for="Name" class="col-sm-2 col-form-label">Roles</label>
+                    <div class="col-sm-10">
+                        <div class="list-group">
+                            @if (ViewBag.RolesList != null)
+                            {
+                                @foreach (var role in ViewBag.RolesList as IEnumerable<SelectListItem>)
+                                {
+
+                                    <label class="list-group-item">
+                                        <input class="form-check-input me-1" type="checkbox" name="selectedRoles"
+                                               value="@role.Value" id="profil_@role.Value" />
+                                        @role.Text
+                                    </label>
+
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+                <!--/ List group checkbox -->
+
+                <div class="row justify-content-end">
+                    <div class="col-sm-10">
+                        <button type="submit" class="btn btn-primary">Create</button>
+                        <a asp-action="Index" class="btn btn-secondary mx-2">Back</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!--/ Form -->

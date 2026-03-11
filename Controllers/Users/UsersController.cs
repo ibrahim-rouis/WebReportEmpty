@@ -218,9 +218,9 @@ namespace WebReport.Controllers.Users
         }
 
         // POST: Users/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             _logger.LogInformation("Posting to Users/DeleteConfirmed with id: {Id}", id);
             var user = await _service.GetUserById(id);
