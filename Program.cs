@@ -1,12 +1,19 @@
 using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using WebReport.Configuration;
 using WebReport.Models;
+using WebReport.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
-// Or hardcode: var connectionString = "server=localhost;database=yourdb;user=youruser;password=yourpassword";
+// Use Serilog for all logging
+builder.Services.AddSerilog((services, lc) => lc
+.ReadFrom.Configuration(builder.Configuration)
+.ReadFrom.Services(services));
 
+// Register the DbContext with the connection string and MySQL provider
+var connectionString = builder.Configuration.GetConnectionString("MySqlConnection");
 builder.Services.AddDbContext<WebReportDBContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
@@ -14,6 +21,9 @@ builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Bind WebReportConfig from appsettings.json to the WebReportConfig class and make it available for injection
+builder.Services.Configure<WebReportConfig>(builder.Configuration.GetSection("WebReportConfig"));
 
 builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
    .AddNegotiate();
@@ -24,8 +34,11 @@ builder.Services.AddAuthorization(options =>
     options.FallbackPolicy = options.DefaultPolicy;
 });
 
-// Windows user photo service
+// Services
 builder.Services.AddScoped<UserPhotoService>();
+builder.Services.AddScoped<UsersService>();
+builder.Services.AddScoped<RolesService>();
+builder.Services.AddScoped<LogViewerService>();
 
 builder.Services.AddRazorPages();
 
