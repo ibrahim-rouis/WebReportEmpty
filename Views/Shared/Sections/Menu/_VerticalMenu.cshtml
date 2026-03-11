@@ -299,12 +299,17 @@
                 </li>
             </ul>
 
-      
+
 
             <!-- Misc -->
         <li class="menu-header small text-uppercase"><span class="menu-header-text">Misc</span></li>
         <li class="menu-item">
-            <a asp-controller="logs" asp-action="index" class="menu-link">
+            <a asp-controller="LogViewer"
+               asp-route-viewMode="month"
+               asp-route-levelFilter="ERR"
+               asp-route-month="@DateTime.Now.Month"
+               asp-route-year="@DateTime.Now.Year"
+               asp-action="Index" class="menu-link">
                 <i class="menu-icon icon-base bx bx-file"></i>
                 <div class="text-truncate">Logs</div>
             </a>
