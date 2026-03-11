@@ -138,7 +138,7 @@ namespace WebReport.Controllers.Users
             // Get all roles and mark the ones assigned to this user as selected
             var allRoles = await _rolesService.GetAllRoles();
             var userRolesIds = user.Roles?.Select(p => p.Id).ToList() ?? new List<int>();
-            ViewBag.Roles = allRoles.Select(p => new SelectListItem
+            ViewBag.RolesList = allRoles.Select(p => new SelectListItem
             {
                 Value = p.Id.ToString(),
                 Text = p.Name,
