@@ -74,13 +74,7 @@ namespace WebReport.Controllers.Users
 
             if (ModelState.IsValid)
             {
-                // Add selected roles to the user
-                if (selectedRoles != null && selectedRoles.Length > 0)
-                {
-                    user.Roles = await _rolesService.GetRolesByIds([.. selectedRoles]);
-                }
-
-                await _service.CreateUser(user);
+                await _service.CreateUser(user, selectedRoles);
                 return RedirectToAction(nameof(Index), new { pageNumber = 1, searchString = "", roleId = (int?)null });
             }
 
@@ -142,10 +136,7 @@ namespace WebReport.Controllers.Users
             if (ModelState.IsValid)
             {
                 // Update user roles based on selected roles
-                if (!(await _service.UpdateUserRoles(id, user, selectedRoles)))
-                {
-                    return NotFound();
-                }
+                await _service.UpdateUserRoles(id, user, selectedRoles);
                 return RedirectToAction(nameof(Index), new { pageNumber = 1, searchString = "", roleId = (int?)null });
             }
 

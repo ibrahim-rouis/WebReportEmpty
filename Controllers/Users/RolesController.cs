@@ -94,23 +94,7 @@ namespace WebReport.Controllers.Users
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    await _service.UpdateRole(roleToUpdate);
-                }
-                catch (DbUpdateConcurrencyException ex)
-                {
-                    _logger.LogError(ex, "Concurrency error while updating role with id={Id}", id);
-                    if (!await _service.RoleExists(roleToUpdate.Id))
-                    {
-                        _logger.LogWarning("Edit POST action: No role found with id={Id} during update", id);
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                await _service.UpdateRole(roleToUpdate);
                 return RedirectToAction(nameof(Index));
             }
             return View("~/Views/UsersMgr/Roles/Edit.cshtml", roleToUpdate);
