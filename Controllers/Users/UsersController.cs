@@ -49,27 +49,6 @@ namespace WebReport.Controllers.Users
             return View("~/Views/UsersMgr/Users/Index.cshtml", users);
         }
 
-        // GET: Users/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            _logger.LogInformation("Accessing Users/Details with id: {Id}", id);
-
-            if (id == null)
-            {
-                _logger.LogWarning("Users/Details called without an id");
-                return NotFound();
-            }
-
-            var user = await _service.GetUserById(id.Value);
-
-            if (user == null)
-            {
-                _logger.LogWarning("User with id {Id} not found", id);
-                return NotFound();
-            }
-            return View("~/Views/UsersMgr/Users/Det.cshtml", user);
-        }
-
         // GET: Users/Create
         public async Task<IActionResult> Create()
         {
@@ -162,52 +141,17 @@ namespace WebReport.Controllers.Users
 
             if (ModelState.IsValid)
             {
-                try
+                // Update user roles based on selected roles
+                if (!(await _service.UpdateUserRoles(id, user, selectedRoles)))
                 {
-                    // Get the existing user with their roles from the database
-                    var userToUpdate = await _service.GetUserById(id);
-
-                    if (userToUpdate == null)
-                    {
-                        return NotFound();
-                    }
-
-                    // Update the user's name
-                    userToUpdate.Name = user.Name;
-
-                    // Clear existing roles
-                    // TODO: This approach may not be optimal for large datasets, consider a more efficient way to update roles if performance becomes an issue
-                    userToUpdate.Roles?.Clear();
-
-                    // Add selected roles
-                    if (selectedRoles != null && selectedRoles.Length > 0)
-                    {
-                        var rolesToAdd = await _rolesService.GetRolesByIds([.. selectedRoles]);
-
-                        userToUpdate.Roles = rolesToAdd;
-                    }
-
-                    await _service.UpdateUser(userToUpdate);
-                }
-                catch (DbUpdateConcurrencyException ex)
-                {
-                    _logger.LogError(ex, "Concurrency error while updating user with id {Id}", id);
-                    if (!await UserExists(id))
-                    {
-                        _logger.LogWarning("User with id {Id} no longer exists during update", id);
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    return NotFound();
                 }
                 return RedirectToAction(nameof(Index), new { pageNumber = 1, searchString = "", roleId = (int?)null });
             }
 
             // If we got here, something failed, redisplay form
             var allRoles = await _rolesService.GetAllRoles();
-            ViewBag.Roles = allRoles.Select(p => new SelectListItem
+            ViewBag.RolesList = allRoles.Select(p => new SelectListItem
             {
                 Value = p.Id.ToString(),
                 Text = p.Name,
@@ -235,11 +179,6 @@ namespace WebReport.Controllers.Users
             }
 
             return Json(new { success = true });
-        }
-
-        private async Task<bool> UserExists(int id)
-        {
-            return await _service.userExists(id);
         }
     }
 }
