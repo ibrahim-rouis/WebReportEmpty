@@ -2,55 +2,58 @@
 using System.DirectoryServices;
 using Microsoft.Extensions.Logging;
 
-// This service retrieves a user's photo from Active Directory and returns it as a Base64 string.
-public class UserPhotoService
+namespace WebReport.Services
 {
-    private readonly ILogger<UserPhotoService> _logger;
-
-    public UserPhotoService(ILogger<UserPhotoService> logger)
+    // This service retrieves a user's photo from Active Directory and returns it as a Base64 string.
+    public class UserPhotoService
     {
-        _logger = logger;
-    }
+        private readonly ILogger<UserPhotoService> _logger;
 
-    public string? GetUserPhotoBase64(string username)
-    {
-        if (string.IsNullOrWhiteSpace(username))
+        public UserPhotoService(ILogger<UserPhotoService> logger)
         {
-            // _logger.LogWarning("GetUserPhotoBase64 called with empty username.");
-            return null;
+            _logger = logger;
         }
 
-        try
+        public string? GetUserPhotoBase64(string username)
         {
-            // _logger.LogDebug("Attempting to retrieve photo for user: {Username}", username);
-
-            using (var context = new PrincipalContext(ContextType.Domain))
-            using (var user = UserPrincipal.FindByIdentity(context, username))
+            if (string.IsNullOrWhiteSpace(username))
             {
-                if (user != null)
+                // _logger.LogWarning("GetUserPhotoBase64 called with empty username.");
+                return null;
+            }
+
+            try
+            {
+                // _logger.LogDebug("Attempting to retrieve photo for user: {Username}", username);
+
+                using (var context = new PrincipalContext(ContextType.Domain))
+                using (var user = UserPrincipal.FindByIdentity(context, username))
                 {
-                    var de = user.GetUnderlyingObject() as DirectoryEntry;
-                    if (de != null && de.Properties["thumbnailPhoto"].Value is byte[] photoBytes)
+                    if (user != null)
                     {
-                        _logger.LogDebug("Photo found for user: {Username}", username);
-                        return Convert.ToBase64String(photoBytes);
+                        var de = user.GetUnderlyingObject() as DirectoryEntry;
+                        if (de != null && de.Properties["thumbnailPhoto"].Value is byte[] photoBytes)
+                        {
+                            _logger.LogDebug("Photo found for user: {Username}", username);
+                            return Convert.ToBase64String(photoBytes);
+                        }
+                        else
+                        {
+                            // _logger.LogDebug("No photo found for user: {Username}", username);
+                        }
                     }
                     else
                     {
-                        // _logger.LogDebug("No photo found for user: {Username}", username);
+                        // _logger.LogDebug("UserPrincipal not found for username: {Username}", username);
                     }
                 }
-                else
-                {
-                    // _logger.LogDebug("UserPrincipal not found for username: {Username}", username);
-                }
             }
-        }
-        catch
-        {
-            // _logger.LogDebug("Error retrieving photo for user: {Username}", username);
-        }
+            catch
+            {
+                // _logger.LogDebug("Error retrieving photo for user: {Username}", username);
+            }
 
-        return null;
+            return null;
+        }
     }
 }

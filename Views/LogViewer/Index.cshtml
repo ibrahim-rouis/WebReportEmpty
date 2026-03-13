@@ -7,144 +7,147 @@
     var config = WebReportConfigOptions.Value;
 }
 
-<style>
-    .log-entry {
-        padding: 0.5rem 0.75rem;
-        border-right-width: 4px;
-        border-right-style: solid;
-        margin-bottom: 2px;
-        font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-        font-size: 0.8rem;
-        background-color: #f8f9fc;
-    }
-
-        .log-entry:hover {
-            background-color: #eaecf4;
+@section PageStyles {
+    <style>
+        .log-entry {
+            padding: 0.5rem 0.75rem;
+            border-right-width: 4px;
+            border-right-style: solid;
+            margin-bottom: 2px;
+            font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+            font-size: 0.8rem;
+            background-color: #f8f9fc;
         }
 
-        .log-entry.expandable {
-            cursor: pointer;
+            .log-entry:hover {
+                background-color: #eaecf4;
+            }
+
+            .log-entry.expandable {
+                cursor: pointer;
+            }
+
+        .log-verbose {
+            border-right-color: #858796;
         }
 
-    .log-verbose {
-        border-right-color: #858796;
-    }
-
-    .log-debug {
-        border-right-color: #36b9cc;
-    }
-
-    .log-info {
-        border-right-color: #1cc88a;
-    }
-
-    .log-warning {
-        border-right-color: #f6c23e;
-    }
-
-    .log-error {
-        border-right-color: #e74a3b;
-    }
-
-    .log-fatal {
-        border-right-color: #6f42c1;
-    }
-
-    .log-timestamp {
-        color: #858796;
-        font-size: 0.75rem;
-    }
-
-    .log-level {
-        font-weight: bold;
-        padding: 0.1rem 0.4rem;
-        border-radius: 0.2rem;
-        font-size: 0.7rem;
-    }
-
-    .log-level-verbose {
-        background-color: #858796;
-        color: white;
-    }
-
-    .log-level-debug {
-        background-color: #36b9cc;
-        color: white;
-    }
-
-    .log-level-info {
-        background-color: #1cc88a;
-        color: white;
-    }
-
-    .log-level-warning {
-        background-color: #f6c23e;
-        color: white;
-    }
-
-    .log-level-error {
-        background-color: #e74a3b;
-        color: white;
-    }
-
-    .log-level-fatal {
-        background-color: #6f42c1;
-        color: white;
-    }
-
-    .log-context {
-        color: #4e73df;
-        font-size: 0.75rem;
-    }
-
-    .log-message {
-        color: #3a3b45;
-    }
-
-    .log-exception {
-        color: #e74a3b;
-        white-space: pre-wrap;
-        font-size: 0.75rem;
-        margin-top: 0.5rem;
-        padding: 0.5rem 1rem;
-        border-left: 3px solid #e74a3b;
-        background-color: #fff5f5;
-        border-radius: 0 0.25rem 0.25rem 0;
-        display: none;
-    }
-
-        .log-exception.show {
-            display: block;
+        .log-debug {
+            border-right-color: #36b9cc;
         }
 
-    .log-container {
-        max-height: 70vh;
-        overflow-y: auto;
-    }
-
-    .stat-badge {
-        padding: 0.3rem 0.6rem;
-        border-radius: 0.35rem;
-        font-size: 0.75rem;
-        margin-right: 0.5rem;
-    }
-
-    .expand-icon {
-        color: #e74a3b;
-        margin-right: 0.25rem;
-        transition: transform 0.2s ease;
-    }
-
-        .expand-icon.rotated {
-            transform: rotate(90deg);
+        .log-info {
+            border-right-color: #1cc88a;
         }
 
-    .has-exception {
-        color: #e74a3b;
-        font-size: 0.7rem;
-        margin-left: 0.5rem;
-    }
-</style>
+        .log-warning {
+            border-right-color: #f6c23e;
+        }
+
+        .log-error {
+            border-right-color: #e74a3b;
+        }
+
+        .log-fatal {
+            border-right-color: #6f42c1;
+        }
+
+        .log-timestamp {
+            color: #858796;
+            font-size: 0.75rem;
+        }
+
+        .log-level {
+            font-weight: bold;
+            padding: 0.1rem 0.4rem;
+            border-radius: 0.2rem;
+            font-size: 0.7rem;
+        }
+
+        .log-level-verbose {
+            background-color: #858796;
+            color: white;
+        }
+
+        .log-level-debug {
+            background-color: #36b9cc;
+            color: white;
+        }
+
+        .log-level-info {
+            background-color: #1cc88a;
+            color: white;
+        }
+
+        .log-level-warning {
+            background-color: #f6c23e;
+            color: white;
+        }
+
+        .log-level-error {
+            background-color: #e74a3b;
+            color: white;
+        }
+
+        .log-level-fatal {
+            background-color: #6f42c1;
+            color: white;
+        }
+
+        .log-context {
+            color: #4e73df;
+            font-size: 0.75rem;
+        }
+
+        .log-message {
+            color: #3a3b45;
+        }
+
+        .log-exception {
+            color: #e74a3b;
+            white-space: pre-wrap;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-left: 3px solid #e74a3b;
+            background-color: #fff5f5;
+            border-radius: 0 0.25rem 0.25rem 0;
+            display: none;
+        }
+
+            .log-exception.show {
+                display: block;
+            }
+
+        .log-container {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .stat-badge {
+            padding: 0.3rem 0.6rem;
+            border-radius: 0.35rem;
+            font-size: 0.75rem;
+            margin-right: 0.5rem;
+        }
+
+        .expand-icon {
+            color: #e74a3b;
+            margin-right: 0.25rem;
+            transition: transform 0.2s ease;
+        }
+
+            .expand-icon.rotated {
+                transform: rotate(90deg);
+            }
+
+        .has-exception {
+            color: #e74a3b;
+            font-size: 0.7rem;
+            margin-left: 0.5rem;
+        }
+    </style>
+}
+
 
 <div class="container-fluid">
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -364,7 +367,7 @@
                     {
                         var isSelected = logDate.Date == Model.SelectedDate.Date && Model.ViewMode == "day";
                         <a href="@Url.Action("Index", new { date = logDate.ToString("yyyy-MM-dd"), viewMode = "day" })"
-                           class="btn btn-sm @(isSelected ? "btn-primary" : "btn-outline-primary") mr-2 mb-2">
+                           class="btn btn-sm @(isSelected ? "btn-primary" : "btn-outline-primary") mx-1">
                             @logDate.ToString("MMM dd, yyyy")
                         </a>
                     }
@@ -376,50 +379,35 @@
 
 @section PageScripts {
     <script>
-        $(".btn-toggle-exp").on('click', function (e) {
-            toggleAllExceptions();
+        $(document).ready(function() {
+            $(".btn-toggle-exp").on('click', function (e) {
+                toggleAllExceptions();
+            });
         });
+
         function toggleViewMode(mode) {
-            document.getElementById('daySelector').style.display = mode === 'day' ? 'block' : 'none';
-            document.getElementById('yearSelector').style.display = mode === 'month' ? 'block' : 'none';
-            document.getElementById('monthSelector').style.display = mode === 'month' ? 'block' : 'none';
+            // .toggle(boolean) will show the element if true, and hide it if false
+            $('#daySelector').toggle(mode === 'day');
+            $('#yearSelector').toggle(mode === 'month');
+            $('#monthSelector').toggle(mode === 'month');
         }
 
         function toggleException(index) {
-            var exceptionDiv = document.getElementById('exception-' + index);
-            var icon = document.getElementById('icon-' + index);
-
-            if (exceptionDiv.classList.contains('show')) {
-                exceptionDiv.classList.remove('show');
-                icon.classList.remove('rotated');
-            } else {
-                exceptionDiv.classList.add('show');
-                icon.classList.add('rotated');
-            }
+            // .toggleClass() automatically adds the class if missing, or removes it if present
+            $('#exception-' + index).toggleClass('show');
+            $('#icon-' + index).toggleClass('rotated');
         }
 
         function toggleAllExceptions() {
-            var exceptions = document.querySelectorAll('.log-exception');
-            var icons = document.querySelectorAll('.expand-icon');
+            var $exceptions = $('.log-exception');
+            var $icons = $('.expand-icon');
 
-            // Check if any are currently hidden
-            var anyHidden = Array.from(exceptions).some(e => !e.classList.contains('show'));
+            // Check if any elements do NOT have the 'show' class
+            var anyHidden = $exceptions.not('.show').length > 0;
 
-            exceptions.forEach(function(ex) {
-                if (anyHidden) {
-                    ex.classList.add('show');
-                } else {
-                    ex.classList.remove('show');
-                }
-            });
-
-            icons.forEach(function(icon) {
-                if (anyHidden) {
-                    icon.classList.add('rotated');
-                } else {
-                    icon.classList.remove('rotated');
-                }
-            });
+            // .toggleClass(class, state) adds the class if 'state' is true, removes it if false
+            $exceptions.toggleClass('show', anyHidden);
+            $icons.toggleClass('rotated', anyHidden);
         }
     </script>
 }
