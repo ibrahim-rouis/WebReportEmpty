@@ -21,7 +21,7 @@ namespace WebReport.Controllers.Users
         // GET: Roles
         public async Task<IActionResult> Index(int? pageNumber, string searchString)
         {
-            _logger.LogInformation("Index action called with pageNumber={PageNumber} and searchString={SearchString}", pageNumber, searchString);
+            _logger.LogInformation("Index action called by user {User} with pageNumber={PageNumber} and searchString={SearchString}", User.Identity?.Name, pageNumber, searchString);
             // Page index (1 by default)
             int pageIndex = pageNumber ?? 1;
 
@@ -41,6 +41,7 @@ namespace WebReport.Controllers.Users
         // GET: Roles/Create
         public IActionResult Create()
         {
+            _logger.LogInformation("Create GET action called by user {User}", User.Identity?.Name);
             return View("~/Views/UsersMgr/Roles/Create.cshtml");
         }
 
@@ -51,7 +52,7 @@ namespace WebReport.Controllers.Users
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name")] Role role)
         {
-            _logger.LogInformation("Create POST action called with Role name={RoleName}", role.Name);
+            _logger.LogInformation("Create POST action called by user {User} with role name={RoleName}", User.Identity?.Name, role.Name);
             if (ModelState.IsValid)
             {
                 await _service.CreateRole(role);
@@ -64,7 +65,7 @@ namespace WebReport.Controllers.Users
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            _logger.LogInformation("Delete POST action called with id={Id}", id);
+            _logger.LogInformation("Delete POST action called by user {User} for role id={Id}", User.Identity?.Name, id);
 
             var role = await _service.GetRoleByIdWithUsers(id);
 

@@ -32,10 +32,10 @@ namespace WebReport.Services.LDAP
             string username = newIdentity.Name; // Typically looks like "DOMAIN\username"
 
             // Strip the domain prefix if your database just stores "username"
-            if (username.Contains("\\"))
-            {
-                username = username.Split('\\')[1];
-            }
+            //if (username.Contains("\\"))
+            //{
+            //    username = username.Split('\\')[1];
+            //}
 
             string cacheKey = $"UserRoles_{username}";
 
@@ -55,19 +55,22 @@ namespace WebReport.Services.LDAP
                     // If user creation in database fails, don't authenticate, user has to refresh
                     if (dbUser == null) return principal;
                 }
-                // GetUserGroups returns null in case of error, so don't update groups since it will remove all user groups
-                else if (adGroups != null)
+
+                // _ldapService.GetUserGroups returns null in case of error, so don't update groups if null since it will remove all user groups
+                if (adGroups != null)
                 {
                     await _windowsUserService.UpdateUserRoles(username, adGroups);
 
-                    // If user roles update in database fails, don't authenticate, user has to refresh
-                    if (dbUser == null) return principal;
+                    cachedRoleNames = adGroups.Where(r => !string.IsNullOrEmpty(r)).ToList();
                 }
-
-                cachedRoleNames = dbUser.Roles?
-                    .Where(r => r != null && r.Name != null)
-                    .Select(r => r.Name!)
-                    .ToList() ?? new List<string>();
+                else
+                {
+                    // If we can't get groups from LDAP, fallback to using whatever roles we have in the database for this user (if any)
+                    cachedRoleNames = dbUser.Roles?
+                        .Where(r => r != null && r.Name != null)
+                        .Select(r => r.Name!)
+                        .ToList() ?? new List<string>();
+                }
 
                 // Store in memory cache for 15 minutes
                 _cache.Set(cacheKey, cachedRoleNames, TimeSpan.FromMinutes(15));

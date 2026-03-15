@@ -23,7 +23,7 @@ namespace WebReport.Controllers.Users
         // GET: Users
         public async Task<IActionResult> Index(int? pageNumber, string searchString, int? roleId)
         {
-            _logger.LogInformation("Accessing Users/Index with pageNumber: {PageNumber}, searchString: {SearchString}, roleId: {RoleId}", pageNumber, searchString, roleId);
+            _logger.LogInformation("Index action called by user {User} with pageNumber={PageNumber}, searchString={SearchString}, roleId={RoleId}", User.Identity?.Name, pageNumber, searchString, roleId);
 
             // Redirect to ensure query parameters are always visible in URL
             if (pageNumber == null)
@@ -54,7 +54,7 @@ namespace WebReport.Controllers.Users
         // GET: Users/Edit/5
         public async Task<IActionResult> Edit(int? id)
         {
-            _logger.LogInformation("Accessing Users/Edit with id: {Id}", id);
+            _logger.LogInformation("Edit GET action called by user {User} with id={Id}", User.Identity?.Name, id);
             if (id == null)
             {
                 _logger.LogWarning("Users/Edit called without an id");
@@ -86,7 +86,7 @@ namespace WebReport.Controllers.Users
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] User user, int[] selectedRoles)
         {
-            _logger.LogInformation("Posting to Users/Edit with id: {Id}, user: {User}, selectedRoles: {SelectedRoles}", id, user, selectedRoles);
+            _logger.LogInformation("Edit POST action called by user {User} with id={Id} and selectedRoles={SelectedRoles}", User.Identity?.Name, id, string.Join(",", selectedRoles));
 
             if (id != user.Id)
             {
@@ -118,7 +118,7 @@ namespace WebReport.Controllers.Users
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
-            _logger.LogInformation("Posting to Users/DeleteConfirmed with id: {Id}", id);
+            _logger.LogInformation("Delete POST action called by user {User} with id={Id}", User.Identity?.Name, id);
             var user = await _service.GetUserById(id);
             if (user != null)
             {

@@ -35,52 +35,16 @@ builder.Services.Configure<LdapConfig>(builder.Configuration.GetSection("LdapCon
 // --- Authentication Setup ---
 var authBuilder = builder.Services.AddAuthentication(options =>
 {
-    if (builder.Environment.IsDevelopment())
-    {
-        // Development uses Cookies (The HTML Login Form)
-        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    }
-    else
-    {
-        // Production uses Integrated Windows Auth (Zero Login)
-        options.DefaultScheme = NegotiateDefaults.AuthenticationScheme;
-        options.DefaultAuthenticateScheme = NegotiateDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = NegotiateDefaults.AuthenticationScheme;
-    }
+    options.DefaultScheme = NegotiateDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = NegotiateDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = NegotiateDefaults.AuthenticationScheme;
 });
 
 authBuilder.AddNegotiate();
 
-// Register the Cookie handler (used for your LDAP form)
-if (builder.Environment.IsDevelopment())
-{
-    authBuilder.AddCookie(options =>
-{
-    options.LoginPath = "/Account/Login";
-    options.AccessDeniedPath = "/Account/AccessDenied";
-    options.ExpireTimeSpan = TimeSpan.FromDays(30); // Persistent for 30 days
-    options.SlidingExpiration = true;
-});
-}
-
-/* ------------------------------- */
-
 builder.Services.AddAuthorization(options =>
 {
-    // Require an authenticated user (via Cookies)
-    // This will trigger a redirect to /Account/Login if the user isn't logged in
-    if (builder.Environment.IsDevelopment())
-    {
-        options.FallbackPolicy = new AuthorizationPolicyBuilder()
-            .RequireAuthenticatedUser()
-            .Build();
-    }
-    else
-    {
-        // set default fallback policy
-        options.FallbackPolicy = options.DefaultPolicy;
-    }
+    options.FallbackPolicy = options.DefaultPolicy;
 });
 
 // --- LDAP ---

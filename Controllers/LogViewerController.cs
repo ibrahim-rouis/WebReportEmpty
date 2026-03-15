@@ -20,8 +20,8 @@ namespace WebReport.Controllers
         public async Task<IActionResult> Index(DateTime? date, int? year, int? month,
             string? viewMode, string? levelFilter, string? searchTerm)
         {
-            _logger.LogInformation("Accessing LogViewer with date: {Date}, year: {Year}, month: {Month}, viewMode: {ViewMode}, levelFilter: {LevelFilter}, searchTerm={}",
-                date, year, month, viewMode, levelFilter, searchTerm);
+            _logger.LogInformation("LogViewer Index called by user {User} with date={Date}, year={Year}, month={Month}, viewMode={ViewMode}, levelFilter={LevelFilter}, searchTerm={SearchTerm}",
+                User.Identity?.Name, date, year, month, viewMode, levelFilter, searchTerm);
 
             var model = new LogViewerViewModel
             {
@@ -62,6 +62,7 @@ namespace WebReport.Controllers
         [HttpGet]
         public async Task<IActionResult> Download(DateTime date)
         {
+            _logger.LogInformation("Download logs for date {Date} requested by user {User}", date, User.Identity?.Name);
             var entries = await _logViewerService.GetLogsForDateAsync(date);
 
             if (entries.Count == 0)
@@ -78,6 +79,7 @@ namespace WebReport.Controllers
 
         public async Task<IActionResult> DownloadMonth(int month, int year)
         {
+            _logger.LogInformation("Download logs for month {Month}/{Year} requested by user {User}", month, year, User.Identity?.Name);
             var entries = await _logViewerService.GetLogsForMonthAsync(year, month);
             if (entries.Count == 0)
             {
@@ -92,6 +94,9 @@ namespace WebReport.Controllers
         public async Task<IActionResult> ExportAndDownload(DateTime? date, int? year, int? month,
             string? viewMode, string? levelFilter, string? searchTerm)
         {
+            _logger.LogInformation("Export and download logs requested by user {User} with date={Date}, year={Year}, month={Month}, viewMode={ViewMode}, levelFilter={LevelFilter}, searchTerm={SearchTerm}",
+                User.Identity?.Name, date, year, month, viewMode, levelFilter, searchTerm);
+
             var model = new LogViewerViewModel
             {
                 ViewMode = viewMode ?? "month",

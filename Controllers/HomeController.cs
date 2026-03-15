@@ -15,11 +15,13 @@ namespace WebReport.Controllers
 
         public IActionResult Index()
         {
+            _logger.LogInformation("User {User} Accessing Home/Index", User.Identity?.Name);
             return View();
         }
 
         public IActionResult Privacy()
         {
+            _logger.LogInformation("User {User} Accessing Home/Privacy", User.Identity?.Name);
             return View();
         }
 
