@@ -199,5 +199,61 @@ namespace WebReport.Services
                 throw;
             }
         }
+
+        // Update user roles
+        public async Task<User?> UpdateUserRoles(string username, List<string> ldapGroups)
+        {
+            try
+            {
+                // Retrieve the existing user
+                var user = await GetWindowsUserByName(username);
+                if (user == null)
+                {
+                    _logger.LogWarning("Cannot update roles for {Username} because the user does not exist in the database.", username);
+                    return null;
+                }
+
+                List<int> userRolesIds = new List<int>();
+
+                if (ldapGroups != null && ldapGroups.Count > 0)
+                {
+                    foreach (var rolename in ldapGroups)
+                    {
+                        if (string.IsNullOrEmpty(rolename))
+                        {
+                            continue;
+                        }
+
+                        // Check if role name already exists
+                        if (await _rolesService.RoleNameExists(rolename))
+                        {
+                            Role? role = await _rolesService.GetRoleByName(rolename);
+                            if (role != null)
+                            {
+                                userRolesIds.Add(role.Id);
+                            }
+                        }
+                        else
+                        {
+                            // Create role in database
+                            Role role = await _rolesService.CreateRole(new Role { Name = rolename });
+                            userRolesIds.Add(role.Id);
+                        }
+                    }
+                }
+
+                // Update the user's roles in the database
+                await _usersService.UpdateUserRoles(user.Id, user, userRolesIds.ToArray());
+
+                _logger.LogInformation("Successfully updated roles for Windows user {Username}.", username);
+
+                return user;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating roles for Windows user {Username}", username);
+                return null;
+            }
+        }
     }
 }

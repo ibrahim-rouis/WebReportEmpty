@@ -53,14 +53,16 @@ var authBuilder = builder.Services.AddAuthentication(options =>
 authBuilder.AddNegotiate();
 
 // Register the Cookie handler (used for your LDAP form)
-authBuilder.AddCookie(options =>
+if (builder.Environment.IsDevelopment())
+{
+    authBuilder.AddCookie(options =>
 {
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
     options.ExpireTimeSpan = TimeSpan.FromDays(30); // Persistent for 30 days
     options.SlidingExpiration = true;
 });
-
+}
 
 /* ------------------------------- */
 

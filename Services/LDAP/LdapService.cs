@@ -68,11 +68,12 @@ namespace WebReport.Services.LDAP
             }
         }
 
-        public List<string> GetUserGroups(string username)
+        public List<string>? GetUserGroups(string username)
         {
-            var groups = new List<string>();
             try
             {
+                var groups = new List<string>();
+
                 using var connection = CreateConnection();
                 var adminCreds = new NetworkCredential(_ldapConfig.AdminDn, _ldapConfig.AdminPassword);
                 connection.Bind(adminCreds);
@@ -99,12 +100,13 @@ namespace WebReport.Services.LDAP
                     var cn = entry.Attributes["cn"][0].ToString();
                     if (!string.IsNullOrEmpty(cn)) groups.Add(cn);
                 }
+                return groups;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching groups for user {Username}", username);
+                return null;
             }
-            return groups;
         }
 
         public byte[]? GetUserPhoto(string username)

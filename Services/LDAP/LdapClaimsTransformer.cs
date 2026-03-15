@@ -50,25 +50,42 @@ namespace WebReport.Services.LDAP
                 if (dbUser == null)
                 {
                     // create user with roles based on AD groups
-                    dbUser = await _windowsUserService.SaveWindowsUser(username, adGroups);
+                    dbUser = await _windowsUserService.SaveWindowsUser(username, adGroups ?? new List<string>());
+
+                    // If user creation in database fails, don't authenticate, user has to refresh
+                    if (dbUser == null) return principal;
+                }
+                // GetUserGroups returns null in case of error, so don't update groups since it will remove all user groups
+                else if (adGroups != null)
+                {
+                    await _windowsUserService.UpdateUserRoles(username, adGroups);
+
+                    // If user roles update in database fails, don't authenticate, user has to refresh
+                    if (dbUser == null) return principal;
                 }
 
-                cachedRoleNames = adGroups;
+                cachedRoleNames = dbUser.Roles?
+                    .Where(r => r != null && r.Name != null)
+                    .Select(r => r.Name!)
+                    .ToList() ?? new List<string>();
 
                 // Store in memory cache for 15 minutes
                 _cache.Set(cacheKey, cachedRoleNames, TimeSpan.FromMinutes(15));
             }
 
-            // 3. Inject Database roles into the current Identity
-            if (cachedRoleNames != null)
+            // 3. Inject Database roles using a NEW Identity (Works in both Dev & Prod)
+            if (cachedRoleNames != null && cachedRoleNames.Count > 0)
             {
+                // Create explicitly with ClaimTypes.Role to override WindowsIdentity default behavior
+                var appRoleIdentity = new ClaimsIdentity("ApplicationRoles", ClaimTypes.Name, ClaimTypes.Role);
+
                 foreach (var roleName in cachedRoleNames)
                 {
-                    if (!newIdentity.HasClaim(ClaimTypes.Role, roleName))
-                    {
-                        newIdentity.AddClaim(new Claim(ClaimTypes.Role, roleName));
-                    }
+                    appRoleIdentity.AddClaim(new Claim(ClaimTypes.Role, roleName));
                 }
+
+                // Add the secondary identity containing the roles to the principal
+                clone.AddIdentity(appRoleIdentity);
             }
 
             return clone;
