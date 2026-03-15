@@ -84,7 +84,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 // --- LDAP ---
-builder.Services.AddSingleton<LdapService>(); // Your helper for LDAP
+builder.Services.AddScoped<LdapService>(); // Your helper for LDAP
 
 builder.Services.AddMemoryCache();
 builder.Services.AddTransient<IClaimsTransformation, LdapClaimsTransformer>();
@@ -94,8 +94,6 @@ builder.Services.AddScoped<UsersService>();
 builder.Services.AddScoped<RolesService>();
 builder.Services.AddScoped<LogViewerService>();
 builder.Services.AddScoped<WindowsUserService>();
-
-builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
