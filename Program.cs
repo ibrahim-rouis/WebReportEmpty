@@ -1,10 +1,14 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Negotiate;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using WebReport.Configuration;
 using WebReport.Middleware;
 using WebReport.Models;
 using WebReport.Services;
+using WebReport.Services.LDAP;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,17 +30,56 @@ builder.Services.AddControllersWithViews();
 // Bind WebReportConfig from appsettings.json to the WebReportConfig class and make it available for injection
 builder.Services.Configure<WebReportConfig>(builder.Configuration.GetSection("WebReportConfig"));
 
-builder.Services.AddAuthentication(NegotiateDefaults.AuthenticationScheme)
-   .AddNegotiate();
+// Bind LdapConfig from appsettings.json
+builder.Services.Configure<LdapConfig>(builder.Configuration.GetSection("LdapConfig"));
+
+// --- Authentication Setup ---
+var authBuilder = builder.Services.AddAuthentication(options =>
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    }
+    else
+    {
+        options.DefaultScheme = NegotiateDefaults.AuthenticationScheme;
+    }
+});
+
+// Register the Cookie handler (used for your LDAP form)
+authBuilder.AddCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+});
+
+// Register Negotiate for everyone so the services are available
+authBuilder.AddNegotiate();
+
+/* ------------------------------- */
 
 builder.Services.AddAuthorization(options =>
 {
-    // By default, all incoming requests will be authorized according to the default policy.
-    options.FallbackPolicy = options.DefaultPolicy;
+    if (builder.Environment.IsDevelopment())
+    {
+        // DEVELOPMENT: Require an authenticated user (via Cookies)
+        // This will trigger a redirect to /Account/Login if the user isn't logged in
+        options.FallbackPolicy = new AuthorizationPolicyBuilder()
+            .RequireAuthenticatedUser()
+            .Build();
+    }
+    else
+    {
+        // PRODUCTION: Require a Windows User (via Negotiate)
+        options.FallbackPolicy = options.DefaultPolicy;
+    }
 });
 
-// Services
-builder.Services.AddScoped<UserPhotoService>();
+// --- LDAP ---
+builder.Services.AddSingleton<LdapService>(); // Your helper for Docker LDAP
+builder.Services.AddScoped<IClaimsTransformation, LdapClaimsTransformer>(); // The "Bridge"
+
+// App Services
 builder.Services.AddScoped<UsersService>();
 builder.Services.AddScoped<RolesService>();
 builder.Services.AddScoped<LogViewerService>();
@@ -59,12 +102,15 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// This middleware will run on every request and attempt to get the Windows user from HttpContext.
 app.UseMiddleware<WindowsUserMiddleware>();
 
 app.Run();

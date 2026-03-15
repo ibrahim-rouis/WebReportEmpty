@@ -14,14 +14,15 @@ namespace WebReport.Middleware
 
         public async Task InvokeAsync(HttpContext context, WindowsUserService windowsUserService)
         {
-            if (context.User?.Identity?.IsAuthenticated != true)
+            // Only try to process the Windows user if they are actually logged in
+            if (context.User?.Identity?.IsAuthenticated == true)
             {
-                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await context.Response.WriteAsync("Unauthorized");
-                return; // Block further processing
+                // Try to get the Windows user. This will create a new user in the database if one does not already exist.
+                await windowsUserService.GetWindowsUser(context);
             }
 
-            await windowsUserService.GetWindowsUser(context);
+            // ALWAYS call the next middleware. 
+            // Let the [Authorize] and [AllowAnonymous] attributes handle the security.
             await _next(context);
         }
     }

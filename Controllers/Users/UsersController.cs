@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using WebReport.Models.Entities;
@@ -6,6 +7,7 @@ using WebReport.Services;
 
 namespace WebReport.Controllers.Users
 {
+    [Authorize(Roles = "Admins")]
     public class UsersController : Controller
     {
         private readonly ILogger<UsersController> _logger;
@@ -47,47 +49,6 @@ namespace WebReport.Controllers.Users
             ViewData["SearchString"] = searchString ?? "";
             ViewData["RoleId"] = roleId;
             return View("~/Views/UsersMgr/Users/Index.cshtml", users);
-        }
-
-        // GET: Users/Create
-        public async Task<IActionResult> Create()
-        {
-            _logger.LogInformation("Accessing Users/Create");
-
-            // Get all roles for selection during user creation
-            var allRoles = await _rolesService.GetAllRoles();
-            ViewBag.RolesList = allRoles.Select(p => new SelectListItem
-            {
-                Value = p.Id.ToString(),
-                Text = p.Name
-            }).ToList();
-
-            return View("~/Views/UsersMgr/Users/Create.cshtml");
-        }
-
-        // POST: Users/Create
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Name")] User user, int[] selectedRoles)
-        {
-            _logger.LogInformation("Posting to Users/Create with user: {User}, selectedRoles: {SelectedRoles}", user, selectedRoles);
-
-            if (ModelState.IsValid)
-            {
-                await _service.CreateUser(user, selectedRoles);
-                return RedirectToAction(nameof(Index), new { pageNumber = 1, searchString = "", roleId = (int?)null });
-            }
-
-            // If we got here, something failed, redisplay form
-            var allRoles = await _rolesService.GetAllRoles();
-            ViewBag.RolesList = allRoles.Select(p => new SelectListItem
-            {
-                Value = p.Id.ToString(),
-                Text = p.Name,
-                Selected = selectedRoles?.Contains(p.Id) ?? false
-            }).ToList();
-
-            return View("~/Views/UsersMgr/Users/Create.cshtml", user);
         }
 
         // GET: Users/Edit/5
