@@ -49,7 +49,7 @@ namespace WebReport.Services.LDAP
                 string userDn = BuildUserIdentity(username);
 
                 // 2. Active Directory and OpenLDAP sometimes use different group classes
-                string groupClass = _env.IsDevelopment() ? "groupOfNames" : "group";
+                string groupClass = _ldapConfig.GroupClass ?? "group";
                 string groupFilter = $"(&(objectClass={groupClass})(cn={groupName})(member={userDn}))";
 
                 var searchRequest = new SearchRequest(
@@ -81,9 +81,8 @@ namespace WebReport.Services.LDAP
                 string userDn = BuildUserIdentity(username);
 
                 // Filter: Find groups where the current user is a 'member'
-                // For OpenLDAP: (objectClass=groupOfNames)
                 // For Active Directory: (objectClass=group)
-                string groupClass = _env.IsDevelopment() ? "groupOfNames" : "group";
+                string groupClass = _ldapConfig.GroupClass ?? "group";
                 string filter = $"(&(objectClass={groupClass})(member={userDn}))";
 
                 var searchRequest = new SearchRequest(
@@ -113,6 +112,7 @@ namespace WebReport.Services.LDAP
         {
             try
             {
+                var photoAttribName = _ldapConfig.PhotoAttribName ?? "thumbnailPhoto";
                 using var connection = CreateConnection();
                 var adminCreds = new NetworkCredential(_ldapConfig.AdminDn, _ldapConfig.AdminPassword);
                 connection.Bind(adminCreds);
@@ -122,14 +122,14 @@ namespace WebReport.Services.LDAP
                     userDn,
                     "(objectClass=*)",
                     SearchScope.Base,
-                    new[] { "jpegPhoto" }); // or thumbnailPhoto
+                    new[] { photoAttribName });
 
                 var response = (SearchResponse)connection.SendRequest(searchRequest);
                 var entry = response.Entries[0];
 
-                if (entry.Attributes.Contains("jpegPhoto"))
+                if (entry.Attributes.Contains(photoAttribName))
                 {
-                    return (byte[])entry.Attributes["jpegPhoto"][0];
+                    return (byte[])entry.Attributes[photoAttribName][0];
                 }
                 return null;
             }
@@ -146,31 +146,15 @@ namespace WebReport.Services.LDAP
 
             connection.SessionOptions.ProtocolVersion = 3;
             connection.SessionOptions.ReferralChasing = ReferralChasingOptions.None;
-
-            if (_env.IsDevelopment())
-            {
-                connection.AuthType = AuthType.Basic;
-            }
-            else
-            {
-                connection.AuthType = AuthType.Negotiate;
-            }
+            connection.AuthType = AuthType.Negotiate;
 
             return connection;
         }
 
         private string BuildUserIdentity(string username)
         {
-            if (_env.IsDevelopment())
-            {
-                // For OpenLDAP, we need the full DN (e.g., uid=jdoe,ou=users,dc=example,dc=com)
-                return $"uid={username},{_ldapConfig.UserOu},{_ldapConfig.BaseDn}";
-            }
-            else
-            {
-                // For Active Directory, we can use the UPN format (e.g., user@leoni.local)
-                return $"{username}@{_ldapConfig.DomainName}";
-            }
+            // For Active Directory, we can use the UPN format (e.g., user@leoni.local)
+            return $"{username}@{_ldapConfig.DomainName}";
         }
     }
 }
