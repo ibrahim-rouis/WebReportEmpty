@@ -9,19 +9,16 @@ namespace WebReport.Services.LDAP
         private readonly WindowsUserService _windowsUserService;
         private readonly LdapService _ldapService;
         private readonly IMemoryCache _cache;
-        private readonly IHostEnvironment _hostEnvironment;
 
         public LdapClaimsTransformer(
             WindowsUserService windowsUserService,
             IMemoryCache cache,
-            LdapService ldapService,
-            IHostEnvironment hostEnvironment
+            LdapService ldapService
         )
         {
             _windowsUserService = windowsUserService;
             _cache = cache;
             _ldapService = ldapService;
-            _hostEnvironment = hostEnvironment;
         }
 
         public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)

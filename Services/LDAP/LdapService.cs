@@ -161,10 +161,12 @@ namespace WebReport.Services.LDAP
         {
             if (_env.IsDevelopment())
             {
+                // For OpenLDAP, we need the full DN (e.g., uid=jdoe,ou=users,dc=example,dc=com)
                 return $"uid={username},{_ldapConfig.UserOu},{_ldapConfig.BaseDn}";
             }
             else
             {
+                // For Active Directory, we can use the UPN format (e.g., user@leoni.local)
                 return $"{username}@{_ldapConfig.DomainName}";
             }
         }

@@ -21,44 +21,6 @@ namespace WebReport.Services
             _ldapService = ldapService;
         }
 
-        // Get Windows user from HttpContext and return the corresponding User entity from database, or null if not found.
-        private async Task<User?> GetWindowsUser(HttpContext httpContext)
-        {
-            try
-            {
-                if (httpContext.User == null ||
-                    httpContext.User.Identity == null ||
-                    httpContext.User.Identity.Name == null
-                    )
-                {
-                    _logger.LogWarning("No authenticated Windows user found in HttpContext");
-                    return null;
-                }
-
-                var username = httpContext.User.Identity!.Name!;
-
-                // Check if user exists in database
-                if (await _usersService.UserNameExists(username))
-                {
-                    var user = await _usersService.GetUserByName(username);
-                    _logger.LogInformation("Windows user {Username} found in database with id={UserId}", username, user?.Id);
-                    return user;
-                }
-                else
-                {
-                    _logger.LogWarning("Windows user {Username} not found in database.", username);
-                    return null;
-                }
-            }
-            catch (Exception ex)
-            {
-                // Something fatal happened went wrong and need to be thrown
-                // This should not happen, but we log it just in case
-                _logger.LogError(ex, "Error getting Windows user from HttpContext");
-                throw;
-            }
-        }
-
         public async Task<User?> GetWindowsUserByName(string username)
         {
             try
@@ -84,6 +46,8 @@ namespace WebReport.Services
             }
         }
 
+
+        // This is used for development purpose only when using OpenLDAP
         public async Task<bool> LoginUser(HttpContext httpContext, LoginViewModel model)
         {
             if (string.IsNullOrEmpty(model.Username) || string.IsNullOrEmpty(model.Password))
@@ -142,6 +106,7 @@ namespace WebReport.Services
             }
         }
 
+        // This called by LoginUser (again this is for dev mode only, never called in production)
         private async Task<bool> SaveUserToDbIfNotExist(string username, List<string> ldapGroups)
         {
             try
@@ -166,6 +131,7 @@ namespace WebReport.Services
             }
         }
 
+        //  Save user and roles assigned to it into database
         public async Task<User?> SaveWindowsUser(string username, List<string> ldapGroups)
         {
             try
