@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
@@ -34,9 +35,22 @@ builder.Services.Configure<LdapConfig>(builder.Configuration.GetSection("LdapCon
 // --- Authentication Setup ---
 var authBuilder = builder.Services.AddAuthentication(options =>
 {
-    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    if (builder.Environment.IsDevelopment())
+    {
+        // Development uses Cookies (The HTML Login Form)
+        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    }
+    else
+    {
+        // Production uses Integrated Windows Auth (Zero Login)
+        options.DefaultScheme = NegotiateDefaults.AuthenticationScheme;
+        options.DefaultAuthenticateScheme = NegotiateDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = NegotiateDefaults.AuthenticationScheme;
+    }
 });
+
+authBuilder.AddNegotiate();
 
 // Register the Cookie handler (used for your LDAP form)
 authBuilder.AddCookie(options =>
@@ -47,8 +61,6 @@ authBuilder.AddCookie(options =>
     options.SlidingExpiration = true;
 });
 
-// Register Negotiate for everyone so the services are available
-authBuilder.AddNegotiate();
 
 /* ------------------------------- */
 
@@ -56,13 +68,24 @@ builder.Services.AddAuthorization(options =>
 {
     // Require an authenticated user (via Cookies)
     // This will trigger a redirect to /Account/Login if the user isn't logged in
-    options.FallbackPolicy = new AuthorizationPolicyBuilder()
-        .RequireAuthenticatedUser()
-        .Build();
+    if (builder.Environment.IsDevelopment())
+    {
+        options.FallbackPolicy = new AuthorizationPolicyBuilder()
+            .RequireAuthenticatedUser()
+            .Build();
+    }
+    else
+    {
+        // set default fallback policy
+        options.FallbackPolicy = options.DefaultPolicy;
+    }
 });
 
 // --- LDAP ---
 builder.Services.AddSingleton<LdapService>(); // Your helper for LDAP
+
+builder.Services.AddMemoryCache();
+builder.Services.AddTransient<IClaimsTransformation, LdapClaimsTransformer>();
 
 // App Services
 builder.Services.AddScoped<UsersService>();

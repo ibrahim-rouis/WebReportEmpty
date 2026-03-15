@@ -166,7 +166,7 @@ namespace WebReport.Services
             }
         }
 
-        private async Task<User?> SaveWindowsUser(string username, List<string> ldapGroups)
+        public async Task<User?> SaveWindowsUser(string username, List<string> ldapGroups)
         {
             try
             {

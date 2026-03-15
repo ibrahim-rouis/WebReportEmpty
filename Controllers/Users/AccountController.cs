@@ -37,6 +37,11 @@ namespace WebReport.Controllers.Users
         {
             _logger.LogInformation("Accessing Account/Login");
 
+            if (User.Identity != null && User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
             return View("~/Views/UsersMgr/Account/Login.cshtml");
         }
 
@@ -48,12 +53,6 @@ namespace WebReport.Controllers.Users
         public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
-
-            if (string.IsNullOrEmpty(model.Username) || string.IsNullOrEmpty(model.Password))
-            {
-                ModelState.AddModelError(string.Empty, "Username and password are required.");
-                return View(model);
-            }
 
             try
             {
@@ -72,7 +71,7 @@ namespace WebReport.Controllers.Users
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpeceted Error during login for user {Username}", model.Username);
+                _logger.LogError(ex, "Unexpected Error during login for user {Username}", model.Username);
                 ModelState.AddModelError(string.Empty, "An error occurred during login. Please try again later.");
                 return View("~/Views/UsersMgr/Account/Login.cshtml", model);
             }
@@ -94,21 +93,24 @@ namespace WebReport.Controllers.Users
             return RedirectToAction("Login", "Account");
         }
 
-        [HttpGet]
-        public async Task<IActionResult> ProfilePicture(string username)
+        [HttpGet("ProfilePicture")]
+        public async Task<IActionResult> ProfilePicture()
         {
-            var defaultAvatar = "default.svg";
+            var defaultAvatarPath = "~/img/avatars/default.svg";
 
-            // Fetch from Database (Super Fast) instead of LDAP
-            var user = await _windowsUserService.GetWindowsUserByName(username);
-
-            if (user?.Photo != null)
+            if (User.Identity != null && User.Identity.IsAuthenticated && !string.IsNullOrEmpty(User.Identity.Name))
             {
-                return File(user.Photo, "image/jpeg");
+                // Fetch from Database (Super Fast) instead of LDAP
+                var user = await _windowsUserService.GetWindowsUserByName(User.Identity.Name);
+
+                if (user?.Photo != null)
+                {
+                    return File(user.Photo, "image/jpeg");
+                }
             }
 
             // Return a default "avatar" icon if no photo exists
-            return Redirect($"~/images/{defaultAvatar}");
+            return LocalRedirect(Url.Content(defaultAvatarPath)!);
         }
     }
 }
