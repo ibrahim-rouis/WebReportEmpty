@@ -60,15 +60,21 @@ namespace WebReport.Services
             return await _context.Roles.FirstOrDefaultAsync(p => p.Id == id);
         }
 
+        public async Task<Role?> GetRoleByName(string name)
+        {
+            _logger.LogInformation("Getting role by name: {Name}", name);
+            return await _context.Roles.FirstOrDefaultAsync(p => p.Name == name);
+        }
+
         /// <summary>
         /// Creates a new role in the data store.
         /// </summary>
         /// <param name="role">The role to create. Must not be null and must have a unique identifier.</param>
         /// <returns>A task that represents the asynchronous operation.</returns>
         /// <exception cref="InvalidOperationException">Thrown if a role with the same identifier already exists.</exception>
-        public async Task CreateRole(Role role)
+        public async Task<Role> CreateRole(Role role)
         {
-            if (RoleExists(role.Id).Result)
+            if (await RoleExists(role.Id))
             {
                 _logger.LogWarning("Role with id {Id} already exists during role creation", role.Id);
                 throw new InvalidOperationException($"Role with id {role.Id} already exists.");
@@ -77,6 +83,8 @@ namespace WebReport.Services
             _logger.LogInformation("Creating new role with name: {RoleName}", role.Name);
             _context.Roles.Add(role);
             await _context.SaveChangesAsync();
+
+            return role;
         }
 
         /// <summary>
@@ -155,6 +163,11 @@ namespace WebReport.Services
         public async Task<bool> RoleExists(int id)
         {
             return await _context.Roles.AnyAsync(p => p.Id == id);
+        }
+
+        public async Task<bool> RoleNameExists(string name)
+        {
+            return await _context.Roles.AnyAsync(r => r.Name == name);
         }
 
         /// <summary>

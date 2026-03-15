@@ -85,9 +85,9 @@ namespace WebReport.Services
         /// must correspond to a valid role.</param>
         /// <returns>A task that represents the asynchronous operation. The task completes when the user has been added to the
         /// database.</returns>
-        public async Task CreateUser(User user, int[] selectedRoles)
+        public async Task<User> CreateUser(User user, int[] selectedRoles)
         {
-            if (UserExists(user.Id).Result)
+            if (await UserExists(user.Id))
             {
                 _logger.LogWarning("User with id {Id} already exists. Creation aborted.", user.Id);
                 throw new InvalidOperationException($"User with id {user.Id} already exists.");
@@ -101,6 +101,8 @@ namespace WebReport.Services
             _logger.LogInformation("Creating user with name: {name}", user.Name);
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
+
+            return user;
         }
 
         /// <summary>
@@ -217,6 +219,18 @@ namespace WebReport.Services
         {
             _logger.LogInformation("Checking if user exists with id: {id}", id);
             return await _context.Users.AnyAsync(e => e.Id == id);
+        }
+
+        public async Task<bool> UserNameExists(string name)
+        {
+            _logger.LogInformation("Checking if user exists with name: {name}", name);
+            return await _context.Users.AnyAsync(e => e.Name == name);
+        }
+
+        public async Task<User?> GetUserByName(string name)
+        {
+            _logger.LogInformation("Getting user by name {Name}", name);
+            return await _context.Users.Include(u => u.Roles).FirstOrDefaultAsync(u => u.Name == name);
         }
     }
 }

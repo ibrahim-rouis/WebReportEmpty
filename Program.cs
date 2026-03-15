@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using WebReport.Configuration;
+using WebReport.Middleware;
 using WebReport.Models;
 using WebReport.Services;
 
@@ -39,6 +40,7 @@ builder.Services.AddScoped<UserPhotoService>();
 builder.Services.AddScoped<UsersService>();
 builder.Services.AddScoped<RolesService>();
 builder.Services.AddScoped<LogViewerService>();
+builder.Services.AddScoped<WindowsUserService>();
 
 builder.Services.AddRazorPages();
 
@@ -62,5 +64,7 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.UseMiddleware<WindowsUserMiddleware>();
 
 app.Run();
