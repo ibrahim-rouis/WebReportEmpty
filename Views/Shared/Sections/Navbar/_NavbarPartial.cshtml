@@ -3,13 +3,7 @@
 @using System.Security.Claims
 @using WebReport.Services
 
-@inject UserPhotoService userPhotoService
-
-@{
-
-    // Get the user's photo in Base64 format, or null if not available
-    var photoBase64 = !String.IsNullOrEmpty(User.Identity?.Name) ? userPhotoService.GetUserPhotoBase64(User.Identity?.Name!) : null;
-
+@{ 
     // Get all role claims for the current user
     var roles = User.Claims
         .Where(c => c.Type == ClaimTypes.Role)
@@ -21,11 +15,6 @@
 
     // Show all roles in tooltip, or "No roles" if none
     var tooltipString = roles.Any() ? string.Join(", ", roles) : "No roles";
-
-
-
-    var defaultAvatar = "default.svg";
-
 }
 
 @if (ViewData["navbarFull"] != null)
@@ -77,14 +66,7 @@
         <li class="nav-item navbar-dropdown dropdown-user dropdown">
             <a class="nav-link dropdown-toggle hide-arrow p-0" href="javascript:void(0);" data-bs-toggle="dropdown">
                 <div class="avatar avatar-online">
-                    @if (!string.IsNullOrEmpty(photoBase64))
-                    {
-                        <img src="data:image/jpeg;base64,@photoBase64" alt="Windows User Photo" class="w-px-40 h-auto rounded-circle" />
-                    }
-                    else
-                    {
-                        <img src="~/img/avatars/@defaultAvatar" alt="Default User Photo" class="w-px-40 h-auto rounded-circle" />
-                    }
+                        <img src="@Url.Action("ProfilePicture", "Account")" alt="Windows User Photo" class="w-px-40 object-fit-cover rounded-circle" />
                 </div>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
@@ -93,14 +75,7 @@
                         <div class="d-flex">
                             <div class="flex-shrink-0 me-3">
                                 <div class="avatar avatar-online">
-                                    @if (!string.IsNullOrEmpty(photoBase64))
-                                    {
-                                        <img src="data:image/jpeg;base64,@photoBase64" alt="Windows User Photo" class="w-px-40 h-auto rounded-circle" />
-                                    }
-                                    else
-                                    {
-                                        <img src="~/img/avatars/@defaultAvatar" alt="Default User Photo" class="w-px-40 h-auto rounded-circle" />
-                                    }
+                                    <img src="@Url.Action("ProfilePicture", "Account")" alt="Windows User Photo" class="w-px-40 object-fit-cover rounded-circle" />
                                 </div>
                             </div>
                             <div class="flex-grow-1">
@@ -119,6 +94,21 @@
                 <li>
                     <a class="dropdown-item" asp-controller="Pages" asp-action="AccountSettings"> <i class="icon-base bx bx-cog icon-md me-3"></i><span>Settings</span> </a>
                 </li>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <environment exclude="Production">
+                        <li>
+                            <div class="dropdown-divider my-1"></div>
+                        </li>
+                        <li>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="form-inline">
+                                <button type="submit" class="dropdown-item">
+                                    <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Log Out</span>
+                                </button>
+                            </form>
+                        </li>
+                    </environment>
+                }
             </ul>
         </li>
         <!--/ User -->

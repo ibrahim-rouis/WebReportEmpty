@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WebReport.Models.Entities;
 using WebReport.Services;
 
 namespace WebReport.Controllers.Users
 {
+    [Authorize(Roles = "Admins")]
     public class RolesController : Controller
     {
         private readonly RolesService _service;
@@ -56,48 +58,6 @@ namespace WebReport.Controllers.Users
                 return RedirectToAction(nameof(Index));
             }
             return View("~/Views/UsersMgr/Roles/Create.cshtml", role);
-        }
-
-        // GET: Roles/Edit/5
-        public async Task<IActionResult> Edit(int? id)
-        {
-            _logger.LogInformation("Edit GET action called with id={Id}", id);
-            if (id == null)
-            {
-                _logger.LogWarning("Edit GET action called with null id");
-                return NotFound();
-            }
-
-            var role = await _service.GetRoleById(id.Value);
-            if (role == null)
-            {
-                _logger.LogWarning("Edit GET action: No role found with id={Id}", id);
-                return NotFound();
-            }
-
-            return View("~/Views/UsersMgr/Roles/Edit.cshtml", role);
-        }
-
-        // POST: Roles/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,Name")] Role roleToUpdate)
-        {
-            _logger.LogInformation("Edit POST action called with id={Id} and role name={RoleName}", id, roleToUpdate.Name);
-            if (id != roleToUpdate.Id)
-            {
-                _logger.LogWarning("Edit POST action: id in URL does not match id in model");
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                await _service.UpdateRole(roleToUpdate);
-                return RedirectToAction(nameof(Index));
-            }
-            return View("~/Views/UsersMgr/Roles/Edit.cshtml", roleToUpdate);
         }
 
         [HttpPost]

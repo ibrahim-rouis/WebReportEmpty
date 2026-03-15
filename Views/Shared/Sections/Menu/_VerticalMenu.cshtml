@@ -27,26 +27,29 @@
 
     @* ! menu-items *@
     <ul class="menu-inner py-1">
-        <!-- Users Management -->
-        <li class='menu-item@(currentPage.StartsWith("/Users") || currentPage.StartsWith("/Roles") ? " active open" : "")'>
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon icon-base bx bx-user"></i>
-                <div class="text-truncate" data-i18n="Users Management">Users Management</div>
-            </a>
-            <ul class="menu-sub">
-                <li class='menu-item@(currentPage.StartsWith("/Users") ? " active" : "")'>
-                    <a asp-controller="Users" asp-action="Index" class="menu-link">
-                        <div class="text-truncate">Users</div>
-                    </a>
-                </li>
-                <li class='menu-item@(currentPage.StartsWith("/Roles") ? " active" : "")'>
-                    <a asp-controller="Roles" asp-action="Index" class="menu-link">
-                        <div class="text-truncate">Roles</div>
-                    </a>
-                </li>
-            </ul>
-        </li>
-
+        @if (User.IsInRole("Admins"))
+        {
+            <!-- Users Management -->
+            <li class='menu-item@(currentPage.StartsWith("/Users") || currentPage.StartsWith("/Roles") ? " active open" : "")'>
+                <a href="javascript:void(0);" class="menu-link menu-toggle">
+                    <i class="menu-icon icon-base bx bx-user"></i>
+                    <div class="text-truncate" data-i18n="Users Management">Users Management</div>
+                </a>
+                <ul class="menu-sub">
+                    <li class='menu-item@(currentPage.StartsWith("/Users") ? " active" : "")'>
+                        <a asp-controller="Users" asp-action="Index" class="menu-link">
+                            <div class="text-truncate">Users</div>
+                        </a>
+                    </li>
+                    <li class='menu-item@(currentPage.StartsWith("/Roles") ? " active" : "")'>
+                        <a asp-controller="Roles" asp-action="Index" class="menu-link">
+                            <div class="text-truncate">Roles</div>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            <!--/ Users Management -->
+        }
         <!-- Part 1 -->
         <li class="menu-header small text-uppercase">
             <span class="menu-header-text">Part 1</span>
@@ -300,22 +303,23 @@
             </ul>
 
 
-
-            <!-- Misc -->
-        <li class="menu-header small text-uppercase"><span class="menu-header-text">Misc</span></li>
-        <li class="menu-item">
-            <a asp-controller="LogViewer"
-               asp-route-viewMode="month"
-               asp-route-levelFilter="ERR"
-               asp-route-month="@DateTime.Now.Month"
-               asp-route-year="@DateTime.Now.Year"
-               asp-action="Index" class="menu-link">
-                <i class="menu-icon icon-base bx bx-file"></i>
-                <div class="text-truncate">Logs</div>
-            </a>
-        </li>
-
-
+            @if (User.IsInRole("Admins"))
+            {
+                <!-- Misc -->
+            <li class="menu-header small text-uppercase"><span class="menu-header-text">Misc</span></li>
+            <li class="menu-item">
+                <a asp-controller="LogViewer"
+                   asp-route-viewMode="month"
+                   asp-route-levelFilter="ERR"
+                   asp-route-month="@DateTime.Now.Month"
+                   asp-route-year="@DateTime.Now.Year"
+                   asp-action="Index" class="menu-link">
+                    <i class="menu-icon icon-base bx bx-file"></i>
+                    <div class="text-truncate">Logs</div>
+                </a>
+            </li>
+            <!--/ Misc -->
+        }
     </ul>
 
 </aside>

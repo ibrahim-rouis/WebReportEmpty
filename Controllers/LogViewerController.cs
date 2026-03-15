@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebReport.Models.ViewModels;
 using WebReport.Services;
 
 namespace WebReport.Controllers
 {
+    [Authorize(Roles = "Admins")]
     public class LogViewerController : Controller
     {
         private readonly LogViewerService _logViewerService;
