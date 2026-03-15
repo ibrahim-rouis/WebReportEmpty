@@ -2,8 +2,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Security.Claims;
 using WebReport.Models.ViewModels;
 using WebReport.Services;
 using WebReport.Services.LDAP;
@@ -17,13 +15,20 @@ namespace WebReport.Controllers.Users
     [Route("Account")]
     public class AccountController : Controller
     {
-        private readonly LdapService _ldapService;
         private readonly ILogger<AccountController> _logger;
+        private readonly WindowsUserService _windowsUserService;
 
-        public AccountController(LdapService ldapService, ILogger<AccountController> logger)
+        public AccountController(LdapService ldapService, ILogger<AccountController> logger, WindowsUserService windowsUserService)
         {
-            _ldapService = ldapService;
             _logger = logger;
+            _windowsUserService = windowsUserService;
+        }
+
+        [HttpGet("AccessDenied")]
+        public IActionResult AccessDenied()
+        {
+            _logger.LogWarning("Access denied to {Path} for user {User}", HttpContext.Request.Path, User.Identity?.Name);
+            return View("~/Views/UsersMgr/Account/AccessDenied.cshtml");
         }
 
         [AllowAnonymous]
@@ -50,28 +55,28 @@ namespace WebReport.Controllers.Users
                 return View(model);
             }
 
-            // 1. Validate against Docker LDAP
-            if (_ldapService.ValidateUserCredentials(model.Username, model.Password))
+            try
             {
-                var claims = new List<Claim>
+                if (await _windowsUserService.LoginUser(HttpContext, model))
                 {
-                    new Claim(ClaimTypes.Name, model.Username),
-                    // We don't add roles here; the IClaimsTransformation will do it automatically!
-                };
+                    if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+                        return Redirect(model.ReturnUrl);
 
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var principal = new ClaimsPrincipal(identity);
-
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
-
-                if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
-                    return Redirect(model.ReturnUrl);
-
-                return RedirectToAction("Index", "Home");
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Invalid LDAP username or password.");
+                    return View("~/Views/UsersMgr/Account/Login.cshtml", model);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpeceted Error during login for user {Username}", model.Username);
+                ModelState.AddModelError(string.Empty, "An error occurred during login. Please try again later.");
+                return View("~/Views/UsersMgr/Account/Login.cshtml", model);
             }
 
-            ModelState.AddModelError(string.Empty, "Invalid LDAP username or password.");
-            return View("~/Views/UsersMgr/Account/Login.cshtml", model);
         }
 
         [HttpPost("Logout")]
@@ -87,6 +92,23 @@ namespace WebReport.Controllers.Users
             // Redirect to the Login page or Home
             // In Dev, this will show the login form again.
             return RedirectToAction("Login", "Account");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ProfilePicture(string username)
+        {
+            var defaultAvatar = "default.svg";
+
+            // Fetch from Database (Super Fast) instead of LDAP
+            var user = await _windowsUserService.GetWindowsUserByName(username);
+
+            if (user?.Photo != null)
+            {
+                return File(user.Photo, "image/jpeg");
+            }
+
+            // Return a default "avatar" icon if no photo exists
+            return Redirect($"~/images/{defaultAvatar}");
         }
     }
 }
