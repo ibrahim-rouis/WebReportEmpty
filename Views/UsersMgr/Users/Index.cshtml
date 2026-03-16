@@ -42,6 +42,7 @@
                 <div class="col-md-2">
                     <label class="form-label"><i class="fas fa-user-alt"></i> Role</label>
                     <select name="roleId" class="form-select form-select-sm">
+                        <option value="">All Roles</option>
                         @if (ViewBag.RolesList is SelectList rolesList)
                         {
                             @foreach (var role in rolesList)
