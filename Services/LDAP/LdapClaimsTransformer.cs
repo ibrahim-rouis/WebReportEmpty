@@ -9,16 +9,19 @@ namespace WebReport.Services.LDAP
         private readonly WindowsUserService _windowsUserService;
         private readonly LdapService _ldapService;
         private readonly IMemoryCache _cache;
+        private readonly IWebHostEnvironment _env;
 
         public LdapClaimsTransformer(
             WindowsUserService windowsUserService,
             IMemoryCache cache,
-            LdapService ldapService
+            LdapService ldapService,
+             IWebHostEnvironment env
         )
         {
             _windowsUserService = windowsUserService;
             _cache = cache;
             _ldapService = ldapService;
+            _env = env;
         }
 
         public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
@@ -45,6 +48,12 @@ namespace WebReport.Services.LDAP
                 // 1. Try to get user from DB
                 var dbUser = await _windowsUserService.GetWindowsUserByName(username);
                 var adGroups = _ldapService.GetUserGroups(username);
+
+                // In development set any connected user as admin to avoid LDAP issues, in production rely on LDAP groups for role assignment
+                if (_env.IsDevelopment() && adGroups == null)
+                {
+                    adGroups = new List<string> { "Admins" };
+                }
 
                 // 2. If user doesn't exist in DB, you might want to create them here!
                 if (dbUser == null)

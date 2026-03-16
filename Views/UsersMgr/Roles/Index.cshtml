@@ -38,6 +38,30 @@
     <a asp-action="Create" class="btn rounded-pill btn-primary">Create Role</a>
 </div>
 
+<!-- Filter Card -->
+<div class="card mb-4">
+    <h5 class="card-header py-2">Filter</h5>
+    <div class="card-body">
+        <form method="get" asp-action="Index">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label"><i class="fas fa-search"></i> Search</label>
+                    <input type="text" name="searchString" class="form-control form-control-sm"
+                           placeholder="Search..." value="@ViewData["SearchString"]" />
+                </div>
+                <div class="col-auto d-flex justify-content-end">
+                    <button type="submit" class="btn btn-icon rounded-pill btn-primary me-2" title="Search">
+                        <span class="icon-base bx bx-search icon-md"></span>
+                    </button>
+                    <a href="@Url.Action("Index")" class="btn btn-icon rounded-pill btn-secondary me-2" title="Reset">
+                        <span class="icon-base bx bx-undo icon-md"></span>
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Basic Bootstrap Table -->
 <div class="card">
     <h5 class="card-header">Roles</h5>
