@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using WebReport.Configuration;
-using WebReport.Controllers;
 using WebReport.Models;
 using WebReport.Models.Common;
 using WebReport.Models.Entities;

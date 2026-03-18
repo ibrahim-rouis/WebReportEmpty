@@ -1,15 +1,6 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using WebReport.Models.ViewModels;
+﻿using Microsoft.AspNetCore.Mvc;
 using WebReport.Services;
-using WebReport.Services.LDAP;
 
-// This is used for development purpose only
-// It provides a simple login form that validates against the Docker LDAP server.
-// In production, we will rely on Windows Authentication and the IClaimsTransformation to automatically populate user roles and photos from LDAP.
-// Ignore this controller for now, it will not be used in production and is only intended to make development easier without needing to set up Windows Authentication on the dev machine.
 namespace WebReport.Controllers.Users
 {
     [Route("Account")]

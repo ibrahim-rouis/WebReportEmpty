@@ -1,8 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Security.Claims;
-using WebReport.Models.Entities;
-using WebReport.Models.ViewModels;
+﻿using WebReport.Models.Entities;
 using WebReport.Services.LDAP;
 
 namespace WebReport.Services
