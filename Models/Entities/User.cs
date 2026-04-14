@@ -17,5 +17,11 @@ namespace WebReport.Models.Entities
 
         // Add a property to store the binary JPEG photo
         public byte[]? Photo { get; set; }
+
+        // created At
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Updated At
+        public DateTime? LastUpdatedAt { get; set; }
     }
 }

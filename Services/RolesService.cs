@@ -106,6 +106,7 @@ namespace WebReport.Services
                 }
 
                 _logger.LogInformation("Updating role with id: {Id} and new name: {RoleName}", role.Id, role.Name);
+                role.LastUpdatedAt = DateTime.UtcNow;
                 _context.Roles.Update(role);
                 await _context.SaveChangesAsync();
             }

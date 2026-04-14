@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebReport.Models;
 
@@ -11,9 +12,11 @@ using WebReport.Models;
 namespace WebReport.Migrations
 {
     [DbContext(typeof(WebReportDBContext))]
-    partial class WebReportDBContextModelSnapshot : ModelSnapshot
+    [Migration("20260414065228_Update models")]
+    partial class Updatemodels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

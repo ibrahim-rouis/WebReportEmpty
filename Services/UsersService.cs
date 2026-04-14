@@ -115,6 +115,7 @@ namespace WebReport.Services
         public async Task UpdateUser(User user)
         {
             _logger.LogInformation("Updating user with id: {id}", user.Id);
+            user.LastUpdatedAt = DateTime.UtcNow;
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }

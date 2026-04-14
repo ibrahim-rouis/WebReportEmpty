@@ -14,5 +14,11 @@ namespace WebReport.Models.Entities
         public string? Name { get; set; }
 
         public List<User>? Users { get; set; }
+
+        // created At
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        // Updated At
+        public DateTime? LastUpdatedAt { get; set; }
     }
 }
