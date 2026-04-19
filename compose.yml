@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   openldap:
     image: osixia/openldap:latest
@@ -14,7 +16,38 @@ services:
     volumes:
       - ldap_data:/var/lib/ldap
       - ldap_config:/etc/ldap/slapd.d
+  webreport-app:
+    image: webreport-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      # Force Kestrel to ONLY use HTTP on port 8080, bypassing the HTTPS certificate error
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__MySqlConnection=Server=webreport-db;Port=3306;Database=WebReportDb;User=root;Password=root;
+    depends_on:
+      webreport-db:
+        condition: service_healthy
+
+  webreport-db:
+    image: mysql:8-debian
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=WebReportDb
+    ports:
+      - "3306:3306"
+    volumes:
+      - webreport_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   ldap_data:
   ldap_config:
+  webreport_db_data:  

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using WebReport.Controllers.API.DTOs;
-using WebReport.Filters;
 using WebReport.Models.Entities;
 using WebReport.Services;
 
@@ -16,7 +15,6 @@ namespace WebReport.Controllers.API.Controllers
     [ApiController]
     [Route("api/users")]
     [Produces("application/json")]
-    [ApiKey]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status500InternalServerError)]
     public class UsersApiController : ControllerBase
     {

@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Negotiate;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -37,48 +36,51 @@ builder.Services.Configure<LdapConfig>(builder.Configuration.GetSection("LdapCon
 // --- Authentication Setup ---
 var authBuilder = builder.Services.AddAuthentication(options =>
 {
-    if (builder.Environment.IsDevelopment())
-    {
-        // Development uses Cookies (The HTML Login Form)
-        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    }
-    else
-    {
-        options.DefaultScheme = NegotiateDefaults.AuthenticationScheme;
-        options.DefaultAuthenticateScheme = NegotiateDefaults.AuthenticationScheme;
-        options.DefaultChallengeScheme = NegotiateDefaults.AuthenticationScheme;
-    }
+    // Development uses Cookies (The HTML Login Form)
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 });
 
-authBuilder.AddNegotiate();
-
 // Register the Cookie handler (used for your LDAP form)
-if (builder.Environment.IsDevelopment())
+authBuilder.AddCookie(options =>
 {
-    authBuilder.AddCookie(options =>
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.ExpireTimeSpan = TimeSpan.FromDays(30); // Persistent for 30 days
+    options.SlidingExpiration = true;
+
+    // Prevent redirect to login/access-denied pages for API requests
+    options.Events.OnRedirectToLogin = context =>
     {
-        options.LoginPath = "/Account/Login";
-        options.AccessDeniedPath = "/Account/AccessDenied";
-        options.ExpireTimeSpan = TimeSpan.FromDays(30); // Persistent for 30 days
-        options.SlidingExpiration = true;
-    });
-}
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+
+    options.Events.OnRedirectToAccessDenied = context =>
+    {
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        }
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+});
+
 
 builder.Services.AddAuthorization(options =>
 {
     // Require an authenticated user (via Cookies)
     // This will trigger a redirect to /Account/Login if the user isn't logged in
-    if (builder.Environment.IsDevelopment())
-    {
-        options.FallbackPolicy = new AuthorizationPolicyBuilder()
-            .RequireAuthenticatedUser()
-            .Build();
-    }
-    else
-    {
-        options.FallbackPolicy = options.DefaultPolicy;
-    }
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
 });
 
 // --- LDAP ---
@@ -116,33 +118,11 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // Define the API Key security scheme
-    options.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
+    // Add your base URL(s) to the Swagger JSON
+    options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
     {
-        Description = "API Key needed to access the endpoints. Enter your API Key below.",
-        In = ParameterLocation.Header,
-        Name = "X-Api-Key", // Must match the header name in your ApiKeyAttribute
-        Type = SecuritySchemeType.ApiKey,
-        Scheme = "ApiKeyScheme"
-    });
-
-    // Apply the API Key requirement to all endpoints
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "ApiKey"
-                },
-                Scheme = "ApiKeyScheme",
-                Name = "ApiKey",
-                In = ParameterLocation.Header
-            },
-            new List<string>()
-        }
+        Url = "https://localhost:7891",
+        Description = "Local Development Server"
     });
 
     // Include XML comments for API documentation
@@ -201,7 +181,13 @@ app.UseSwaggerUI(options =>
     options.EnableTryItOutByDefault();
 });
 
-app.UseHttpsRedirection();
+// Only use HTTPS redirection if an HTTPS port is bound (e.g., in Production with a real cert)
+if (!app.Environment.IsDevelopment())
+{
+    // ... your HSTS code
+    app.UseHttpsRedirection();
+}
+
 app.UseStaticFiles();
 
 app.UseRouting();

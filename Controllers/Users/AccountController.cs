@@ -9,6 +9,7 @@ using WebReport.Services.LDAP;
 namespace WebReport.Controllers.Users
 {
     [Route("Account")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class AccountController : Controller
     {
         private readonly ILogger<AccountController> _logger;
