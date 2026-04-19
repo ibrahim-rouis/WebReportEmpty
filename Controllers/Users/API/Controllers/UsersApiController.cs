@@ -265,6 +265,7 @@ namespace WebReport.Controllers.API.Controllers
             {
                 Id = user.Id,
                 Name = user.Name,
+                FullName = user.FullName,
                 RoleIds = user.Roles?.Select(r => r.Id).ToList(),
                 RoleNames = user.Roles?.Select(r => r.Name ?? "").ToList(),
                 Links = GenerateUserLinks(user.Id)

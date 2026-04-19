@@ -82,7 +82,8 @@
                 <tr>
                     <th width="10%">Id</th>
                     <th width="20%">Name</th>
-                    <th width="60%">Roles</th>
+                    <th width="30%">Full Name</th>
+                    <th width="30%">Roles</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -92,6 +93,7 @@
                     <tr id="user-row-@item.Id">
                         <td>@item.Id</td>
                         <td>@item.Name</td>
+                        <td>@item.FullName</td>
                         <td>
                             @if (item.Roles != null && item.Roles.Any())
                             {

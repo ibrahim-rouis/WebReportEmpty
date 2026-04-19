@@ -1,6 +1,6 @@
-﻿using System.DirectoryServices.Protocols;
+﻿using Microsoft.Extensions.Options;
+using System.DirectoryServices.Protocols;
 using System.Net;
-using Microsoft.Extensions.Options;
 using WebReport.Configuration;
 
 namespace WebReport.Services.LDAP
@@ -34,6 +34,46 @@ namespace WebReport.Services.LDAP
                 _logger.LogWarning("LDAP Bind failed for user {Username}. Error: {Message}", username, ex.Message);
                 return false;
             }
+        }
+
+        public string? GetUserCN(string username)
+        {
+            try
+            {
+                using var connection = CreateConnection();
+                var adminCreds = new NetworkCredential(_ldapConfig.AdminDn, _ldapConfig.AdminPassword);
+                connection.Bind(adminCreds);
+
+                string userDn = BuildUserIdentity(username);
+
+                // Request both 'cn' and 'uid' attributes
+                var searchRequest = new SearchRequest(
+                    userDn,
+                    "(objectClass=*)",
+                    SearchScope.Base,
+                    new[] { "cn", "uid" }
+                );
+
+                var response = (SearchResponse)connection.SendRequest(searchRequest);
+
+                if (response.Entries.Count > 0)
+                {
+                    var entry = response.Entries[0];
+
+                    // Extract values, checking if they exist in the directory first
+                    string? cn = entry.Attributes.Contains("cn")
+                        ? entry.Attributes["cn"][0].ToString()
+                        : null;
+
+                    return cn;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching details (CN/uid) for user {Username}", username);
+            }
+
+            return null;
         }
 
         public bool IsUserInGroup(string username, string groupName)
@@ -146,15 +186,31 @@ namespace WebReport.Services.LDAP
 
             connection.SessionOptions.ProtocolVersion = 3;
             connection.SessionOptions.ReferralChasing = ReferralChasingOptions.None;
-            connection.AuthType = AuthType.Negotiate;
+
+            if (_env.IsDevelopment())
+            {
+                connection.AuthType = AuthType.Basic;
+            }
+            else
+            {
+                connection.AuthType = AuthType.Negotiate;
+            }
 
             return connection;
         }
 
         private string BuildUserIdentity(string username)
         {
-            // For Active Directory, we can use the UPN format (e.g., user@leoni.local)
-            return $"{username}@{_ldapConfig.DomainName}";
+            if (_env.IsDevelopment())
+            {
+                // For OpenLDAP, we need the full DN (e.g., uid=jdoe,ou=users,dc=example,dc=com)
+                return $"uid={username},{_ldapConfig.UserOu},{_ldapConfig.BaseDn}";
+            }
+            else
+            {
+                // For Active Directory, we can use the UPN format (e.g., user@leoni.local)
+                return $"{username}@{_ldapConfig.DomainName}";
+            }
         }
     }
 }

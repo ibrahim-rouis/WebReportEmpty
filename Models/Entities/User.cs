@@ -13,6 +13,8 @@ namespace WebReport.Models.Entities
         [StringLength(255)]
         public string? Name { get; set; }
 
+        public string? FullName { get; set; }
+
         public List<Role>? Roles { get; set; }
 
         // Add a property to store the binary JPEG photo

@@ -14,10 +14,16 @@ namespace WebReport.Controllers.API.DTOs
         public int Id { get; set; }
 
         /// <summary>
-        /// Name of the user
+        /// Name of the user in Actice Direcrtory
+        /// </summary>
+        /// <example>JohnDo</example>
+        public string? Name { get; set; }
+
+        /// <summary>
+        /// Full name of the user
         /// </summary>
         /// <example>John Doe</example>
-        public string? Name { get; set; }
+        public string? FullName { get; set; }
 
         /// <summary>
         /// Date and time when the user was last updated

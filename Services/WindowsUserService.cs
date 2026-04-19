@@ -1,4 +1,8 @@
-﻿using WebReport.Models.Entities;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
+using WebReport.Models.Entities;
+using WebReport.Models.ViewModels;
 using WebReport.Services.LDAP;
 
 namespace WebReport.Services
@@ -38,6 +42,50 @@ namespace WebReport.Services
                 // Something fatal happened went wrong and need to be thrown
                 // This should not happen, but we log it just in case
                 _logger.LogError(ex, "Error getting Windows user from HttpContext");
+                throw;
+            }
+        }
+
+        // This is used for development purpose only when using OpenLDAP
+        public async Task<bool> LoginUser(HttpContext httpContext, LoginViewModel model)
+        {
+            if (string.IsNullOrEmpty(model.Username) || string.IsNullOrEmpty(model.Password))
+            {
+                return false;
+            }
+            try
+            {
+                // 1. Validate against Docker LDAP
+                if (_ldapService.ValidateUserCredentials(model.Username, model.Password))
+                {
+                    var cn = _ldapService.GetUserCN(model.Username);
+                    if (cn == null)
+                    {
+                        _logger.LogWarning("Failed to retrieve user details for {Username} from LDAP.", model.Username);
+                    }
+
+                    var claims = new List<Claim>
+                        {
+                            new Claim(ClaimTypes.Name, model.Username),
+                            // We don't add roles here; the IClaimsTransformation will do it automatically!
+                        };
+
+
+                    var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var principal = new ClaimsPrincipal(identity);
+
+                    await httpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during Windows user login for {Username}", model.Username);
                 throw;
             }
         }
@@ -92,10 +140,12 @@ namespace WebReport.Services
 
                 // Get UserPhoto from LDAP
                 var userPhotoBytes = _ldapService.GetUserPhoto(username);
+                var cn = _ldapService.GetUserCN(username);
 
                 var newUser = new User
                 {
                     Name = username,
+                    FullName = cn,
                     Photo = userPhotoBytes, // We don't have user photo from Windows authentication, so we set it to null
                 };
 

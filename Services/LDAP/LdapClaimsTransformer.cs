@@ -49,12 +49,6 @@ namespace WebReport.Services.LDAP
                 var dbUser = await _windowsUserService.GetWindowsUserByName(username);
                 var adGroups = _ldapService.GetUserGroups(username);
 
-                // In development set any connected user as admin to avoid LDAP issues, in production rely on LDAP groups for role assignment
-                if (_env.IsDevelopment() && adGroups == null)
-                {
-                    adGroups = new List<string> { "Admins" };
-                }
-
                 // 2. If user doesn't exist in DB, you might want to create them here!
                 if (dbUser == null)
                 {

@@ -94,6 +94,21 @@
                 <li>
                     <a class="dropdown-item" asp-controller="Pages" asp-action="AccountSettings"> <i class="icon-base bx bx-cog icon-md me-3"></i><span>Settings</span> </a>
                 </li>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <environment exclude="Production">
+                        <li>
+                            <div class="dropdown-divider my-1"></div>
+                        </li>
+                        <li>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="form-inline">
+                                <button type="submit" class="dropdown-item">
+                                    <i class="icon-base bx bx-power-off icon-md me-3"></i><span>Log Out</span>
+                                </button>
+                            </form>
+                        </li>
+                    </environment>
+                }
             </ul>
         </li>
         <!--/ User -->
