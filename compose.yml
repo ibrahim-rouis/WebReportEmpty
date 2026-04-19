@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   openldap:
     image: osixia/openldap:latest
@@ -47,7 +45,22 @@ services:
       timeout: 5s
       retries: 5
 
+  flowise:
+    image: flowiseai/flowise:latest
+    container_name: flowise
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - FLOWISE_USERNAME=admin
+      - FLOWISE_PASSWORD=admin
+      - HTTP_SECURITY_CHECK=false
+    volumes:
+      - flowise_data:/root/.flowise
+
 volumes:
   ldap_data:
   ldap_config:
-  webreport_db_data:  
+  webreport_db_data:
+  flowise_data:

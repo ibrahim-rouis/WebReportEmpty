@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebReport.Configuration;
 using WebReport.Controllers.API.DTOs;
 using WebReport.Models.Entities;
 using WebReport.Services;
@@ -15,6 +17,8 @@ namespace WebReport.Controllers.API.Controllers
     [ApiController]
     [Route("api/roles")]
     [Produces("application/json")]
+    [AllowAnonymous]
+    [ApiKey]
     [ProducesResponseType(typeof(ApiErrorResponse), StatusCodes.Status500InternalServerError)]
     public class RolesApiController : ControllerBase
     {

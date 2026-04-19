@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using WebReport.Configuration;
 using WebReport.Controllers.API.Controllers;
 using WebReport.Controllers.Users.API.DTOs;
 using WebReport.Models.ViewModels;
@@ -14,6 +15,7 @@ namespace WebReportEmpty.Controllers.Users.API.Controllers
     /// </summary>
     [Route("api/[controller]")]
     [ApiController]
+    [ApiKey]
     [Produces("application/json")]
     public class AccountApiController : ControllerBase
     {

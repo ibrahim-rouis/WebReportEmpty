@@ -24,6 +24,18 @@ builder.Services.AddDbContext<WebReportDBContext>(options =>
 
 builder.Services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+// Add this with your other builder.Services configurations
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll",
+        policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
@@ -121,8 +133,14 @@ builder.Services.AddSwaggerGen(options =>
     // Add your base URL(s) to the Swagger JSON
     options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
     {
-        Url = "https://localhost:7891",
+        Url = "http://localhost:8080",
         Description = "Local Development Server"
+    });
+    // Add your base URL(s) to the Swagger JSON
+    options.AddServer(new Microsoft.OpenApi.Models.OpenApiServer
+    {
+        Url = "http://webreport-app:8080",
+        Description = "Local Development Server Docker Compose"
     });
 
     // Include XML comments for API documentation
@@ -147,6 +165,36 @@ builder.Services.AddSwaggerGen(options =>
         }
 
         return ["Misc"];
+    });
+
+
+    // Define the security scheme for the API Key
+    options.AddSecurityDefinition("ApiKey", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Description = "API Key needed to access the endpoints. X-Api-Key: My_API_Key",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Name = "X-Api-Key",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "ApiKeyScheme"
+    });
+
+    // Apply the security requirement globally to all endpoints
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "ApiKey"
+                },
+                Scheme = "ApiKeyScheme",
+                Name = "ApiKey",
+                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+            },
+            new List<string>()
+        }
     });
 });
 
@@ -192,8 +240,10 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthentication();
+// Add UseCors right here!
+app.UseCors("AllowAll");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllerRoute(
